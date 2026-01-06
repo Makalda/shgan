@@ -129,6 +129,12 @@ Search for:  ======== EDIT HERE ========
       pointer-events:none;
     }
     #bgCanvas{ z-index:-3; }
+    /* ✅ show constellation ABOVE the card (only during effect) */
+    body.constellationOn #bgCanvas{
+      z-index: 45;               /* فوق الكرت */
+      mix-blend-mode: screen;    /* اندماج حلو */
+      opacity: .98;              /* واضح */
+    }
     #burstCanvas{ z-index:50; display:none; }
     #burstCanvas.show{ display:block; }
 
@@ -1274,13 +1280,13 @@ Search for:  ======== EDIT HERE ========
               </div>
 
               <div class="footerNote" style="margin-top:12px;">
-                Made with a floating heart and a big smile 🌸
+                 صنع بكل حب ونابع من القلب 🌸
               </div>
             </div>
           </div>
 
           <div class="footerNote" id="copyrightNote">
-            © 2024 Made with ❤️ by Obai for Shgan
+            © 2026 Made with ❤️ by Obai for Shgan
           </div>
         </div>
       </div>
@@ -1362,9 +1368,9 @@ Search for:  ======== EDIT HERE ========
 
     // (6) Reveal pacing (readable)
     const ENABLE_ENVELOPE = false; // set to false if you want to remove the envelope for now
-    const LINE_DELAY_MIN = 480;   // ms (slower = bigger)
-    const LINE_DELAY_MAX = 720;   // ms
-    const EXTRA_PAUSE_EMPTY_LINE = 990; // extra pause when the line is empty
+    const LINE_DELAY_MIN = 700;   // ms (slower = bigger)
+    const LINE_DELAY_MAX = 1000;   // ms
+    const EXTRA_PAUSE_EMPTY_LINE = 1200; // extra pause when the line is empty
 
     /************************************************************
      * ===================== END EDIT HERE =======================
@@ -1603,6 +1609,7 @@ Search for:  ======== EDIT HERE ========
         }
 
         burstCinematic();
+        constellationOnce();
       }, 480);
 
       if (audioEl) {
@@ -1870,7 +1877,7 @@ ${(MY_ARABIC_MESSAGE||"").trim()}
         }
       }
 
-      for (let i=0;i<18;i++){
+      for (let i=0;i<90;i++){
         stars.push({
           x: rand(0, innerWidth),
           y: rand(0, innerHeight),
@@ -1885,77 +1892,402 @@ ${(MY_ARABIC_MESSAGE||"").trim()}
     }
     initBG();
 
-    function bgLoop(now){
-      bgCtx.setTransform(bgDpr,0,0,bgDpr,0,0);
-      bgCtx.clearRect(0,0,innerWidth,innerHeight);
+    // CONSTELLATION SHGAN START
+    const CONSTELLATION_KEY = "constellation_shgan_once_v1";
+    const constellation = {
+      active: false,
+      phase: "idle", // gather | hold | disperse
+      t0: 0,
+      durGather: 1400,
+      durHold: 2000,
+      durDisperse: 1000,
+      map: [], // [{i, ox, oy, ovx, ovy, tx, ty}]
+      targets: [],
+      locked: null, // Set of star indices locked into the word
+      threshold: 94,
+      boostAlpha: 0.38,
+      ready: false,
+    };
 
-      const px = state.ry / 10;
-      const py = state.rx / 8;
+    function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
+    function easeInOutCubic(t){ return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3)/2; }
+    function lerp(a,b,t){ return a + (b-a)*t; }
 
-      for (const p of bokeh){
-        p.x += p.vx;
-        p.y += p.vy;
-        p.p += 0.012;
+    // Build a tiny dot-matrix for SHGAN in normalized (0..1) coordinates.
+    // Light + iPhone-friendly: ~60–90 points.
+    function buildSHGANTargets(){
+      // 7x7-ish grids per letter, 1 = point
+      const S = [
+        "1111110",
+        "1000000",
+        "1111100",
+        "0000110",
+        "0000010",
+        "0111110",
+      ];
+      const H = [
+        "1000010",
+        "1000010",
+        "1111110",
+        "1000010",
+        "1000010",
+        "1000010",
+      ];
+      const G = [
+        "0111110",
+        "1000000",
+        "1001110",
+        "1000010",
+        "1000010",
+        "0111110",
+      ];
+      const A = [
+        "0011100",
+        "0100010",
+        "0100010",
+        "0111110",
+        "0100010",
+        "0100010",
+      ];
+      const N = [
+        "1000010",
+        "1100010",
+        "1010010",
+        "1001010",
+        "1000110",
+        "1000010",
+      ];
 
-        if (p.x < -100) p.x = innerWidth + 100;
-        if (p.x > innerWidth + 100) p.x = -100;
-        if (p.y < -100) p.y = innerHeight + 100;
-        if (p.y > innerHeight + 100) p.y = -100;
+      const letters = [S,H,G,A,N];
+      const w = 7;
+      const h = 6;
+      const gap = 2; // columns between letters
 
-        const ox = px * 26 * p.depth;
-        const oy = py * 26 * p.depth;
+      // Compose into one grid
+      const totalW = letters.length*w + (letters.length-1)*gap;
+      const pts = [];
 
-        const alpha = p.a + Math.sin(p.p)*0.02;
-        const g = bgCtx.createRadialGradient(p.x+ox, p.y+oy, 0, p.x+ox, p.y+oy, p.r);
-        g.addColorStop(0, `hsla(${p.hue}, 95%, 76%, ${alpha})`);
-        g.addColorStop(1, `hsla(${p.hue}, 95%, 76%, 0)`);
-        bgCtx.fillStyle = g;
-        bgCtx.beginPath();
-        bgCtx.arc(p.x+ox, p.y+oy, p.r, 0, Math.PI*2);
-        bgCtx.fill();
+      let xOff = 0;
+      for (let li=0; li<letters.length; li++){
+        const L = letters[li];
+        for (let y=0; y<h; y++){
+          const row = L[y];
+          for (let x=0; x<w; x++){
+            if (row[x] === "1"){
+              pts.push({
+                gx: xOff + x,
+                gy: y
+              });
+            }
+          }
+        }
+        xOff += w + gap;
       }
 
-      for (const s of stars){
-        s.t += 0.03;
-        s.x += s.vx;
-        s.y += s.vy;
+      // Normalize: leave margins, slightly above center
+      // Map grid to normalized canvas coordinates
+      const targets = pts.map(p => {
+        const nx = (p.gx + 0.5) / totalW;
+        const ny = (p.gy + 0.5) / h;
+        return { nx, ny };
+      });
 
-        if (s.x < -30) s.x = innerWidth + 30;
-        if (s.x > innerWidth + 30) s.x = -30;
-        if (s.y < -30) s.y = innerHeight + 30;
-        if (s.y > innerHeight + 30) s.y = -30;
-
-        s.a = 0.18 + (Math.sin(s.t)+1)*0.12;
-
-        const ox = px * 34 * s.depth;
-        const oy = py * 34 * s.depth;
-
-        bgCtx.save();
-        bgCtx.globalAlpha = s.a;
-        bgCtx.fillStyle = "rgba(255,255,255,1)";
-        bgCtx.shadowColor = "rgba(255,255,255,.75)";
-        bgCtx.shadowBlur = 14;
-
-        bgCtx.translate(s.x+ox, s.y+oy);
-        bgCtx.rotate(s.t * 0.25);
-
-        bgCtx.beginPath();
-        bgCtx.moveTo(0, -6*s.s);
-        bgCtx.lineTo(1.6*s.s, -1.6*s.s);
-        bgCtx.lineTo(6*s.s, 0);
-        bgCtx.lineTo(1.6*s.s, 1.6*s.s);
-        bgCtx.lineTo(0, 6*s.s);
-        bgCtx.lineTo(-1.6*s.s, 1.6*s.s);
-        bgCtx.lineTo(-6*s.s, 0);
-        bgCtx.lineTo(-1.6*s.s, -1.6*s.s);
-        bgCtx.closePath();
-        bgCtx.fill();
-        bgCtx.restore();
-      }
-
-      requestAnimationFrame(bgLoop);
+      return targets;
     }
-    requestAnimationFrame(bgLoop);
+
+    function computeTargetPixels(){
+      // Layout: centered horizontally, slightly upper-mid
+      const padX = 0.10;
+      const padY = 0.18;
+      const boxW = 1 - padX*2;
+      const boxH = 0.20; // tight height for word
+
+      // Scale based on shortest side, but keep within box
+      const targets = buildSHGANTargets();
+      constellation.targets = targets.map(t => {
+        const x = innerWidth  * (padX + t.nx * boxW);
+        const y = innerHeight * (padY + t.ny * boxH);
+        return { x, y };
+      });
+    }
+
+    function constellationOnce(){
+      try{
+        if (sessionStorage.getItem(CONSTELLATION_KEY) === "1") return;
+      }catch{}
+
+      if (!stars || stars.length < 12) return;
+
+      // mark once per session
+      try{ sessionStorage.setItem(CONSTELLATION_KEY, "1"); }catch{}
+      document.body.classList.add("constellationOn");
+
+      computeTargetPixels();
+
+      // Pick subset of stars to map to targets
+      const m = Math.min(stars.length, constellation.targets.length);
+      if (m < 18) return;
+
+      // Create a stable selection of stars: take the brightest-like (bigger s) first
+      const idx = stars
+        .map((s, i) => ({ i, s: s.s }))
+        .sort((a,b) => b.s - a.s)
+        .slice(0, m)
+        .map(o => o.i);
+
+      constellation.map = [];
+      constellation.locked = new Set();
+      for (let k=0; k<m; k++){
+        const i = idx[k];
+        const st = stars[i];
+        const t = constellation.targets[k];
+        constellation.map.push({
+          i,
+          ox: st.x, oy: st.y,
+          ovx: st.vx, ovy: st.vy,
+          tx: t.x, ty: t.y,
+        });
+        constellation.locked.add(i);
+      }
+
+      constellation.active = true;
+      constellation.phase = "gather";
+      constellation.t0 = performance.now();
+      constellation.durGather = Math.floor(rand(1200, 1600));
+      constellation.durHold = 2000;
+      constellation.durDisperse = 1000;
+      constellation.threshold = Math.max(78, Math.min(110, innerWidth * 0.11));
+      constellation.ready = true;
+    }
+
+    function constellationUpdate(now){
+      if (!constellation.active || !constellation.ready) return;
+
+      const t = now - constellation.t0;
+      const g = constellation.durGather;
+      const h = constellation.durHold;
+      const d = constellation.durDisperse;
+
+      if (constellation.phase === "gather"){
+        const p = clamp(t / g, 0, 1);
+        const e = easeOutCubic(p);
+        for (const m of constellation.map){
+          const st = stars[m.i];
+          st.x = lerp(m.ox, m.tx, e);
+          st.y = lerp(m.oy, m.ty, e);
+          st.vx = 0; st.vy = 0;
+          st.a = Math.max(st.a, 0.22 + e * constellation.boostAlpha);
+        }
+        if (p >= 1){
+          constellation.phase = "hold";
+          constellation.t0 = now;
+        }
+        return;
+      }
+
+      if (constellation.phase === "hold"){
+        // gentle twinkle without moving
+        for (const m of constellation.map){
+          const st = stars[m.i];
+          st.x = m.tx;
+          st.y = m.ty;
+          st.vx = 0; st.vy = 0;
+          st.t += 0.02;
+          st.a = 0.46 + (Math.sin(st.t) + 1) * 0.16;
+        }
+        if (t >= h){
+          constellation.phase = "disperse";
+          constellation.t0 = now;
+        }
+        return;
+      }
+
+      if (constellation.phase === "disperse"){
+        const p = clamp(t / d, 0, 1);
+        const e = easeInOutCubic(p);
+        for (const m of constellation.map){
+          const st = stars[m.i];
+          st.x = lerp(m.tx, m.ox, e);
+          st.y = lerp(m.ty, m.oy, e);
+          st.vx = 0; st.vy = 0;
+          st.a = Math.max(st.a, 0.34 + e * 0.46);
+        }
+        if (p >= 1){
+          // restore normal motion smoothly
+          for (const m of constellation.map){
+            const st = stars[m.i];
+            st.x = m.ox;
+            st.y = m.oy;
+            st.vx = m.ovx;
+            st.vy = m.ovy;
+          }
+          document.body.classList.remove("constellationOn");
+          constellation.active = false;
+          constellation.phase = "idle";
+          constellation.map = [];
+          constellation.locked = null;
+          constellation.ready = false;
+        }
+      }
+    }
+
+    function drawConstellationLines(){
+      if (!constellation.active || !constellation.map.length) return;
+      const pts = constellation.map.map(m => stars[m.i]);
+      const th = constellation.threshold;
+
+      bgCtx.save();
+      bgCtx.lineWidth = 1;
+      bgCtx.strokeStyle = "rgba(255,255,255,0.55)";
+      bgCtx.shadowColor = "rgba(255,255,255,.18)";
+      bgCtx.shadowBlur = 8;
+
+      // ✅ Performance fix: avoid O(n^2) — only check the next few points
+      const MAX_NEIGHBORS = 10;
+
+      for (let i = 0; i < pts.length; i++){
+        const a = pts[i];
+        for (let j = i + 1; j < pts.length && j < i + 1 + MAX_NEIGHBORS; j++){
+          const b = pts[j];
+          const dx = a.x - b.x;
+          const dy = a.y - b.y;
+          const dist = Math.hypot(dx, dy);
+
+          if (dist < th){
+            const fade = 1 - (dist / th);
+            bgCtx.globalAlpha = 0.04 + fade * 0.14; // خطوط خفيفة مش “خط”
+            bgCtx.beginPath();
+            bgCtx.moveTo(a.x, a.y);
+            bgCtx.lineTo(b.x, b.y);
+            bgCtx.stroke();
+          }
+        }
+      }
+
+      bgCtx.restore();
+    }
+
+    // Keep constellation scaled on resize
+    window.addEventListener("resize", () => {
+      if (constellation.active){
+        computeTargetPixels();
+        // update targets for current mapping index (keep order)
+        const m = Math.min(constellation.map.length, constellation.targets.length);
+        for (let k=0; k<m; k++){
+          const t = constellation.targets[k];
+          constellation.map[k].tx = t.x;
+          constellation.map[k].ty = t.y;
+        }
+      }
+    });
+    // CONSTELLATION SHGAN END
+
+function bgLoop(now){
+  bgCtx.setTransform(bgDpr,0,0,bgDpr,0,0);
+  bgCtx.clearRect(0,0,innerWidth,innerHeight);
+
+  const inConstellation = !!constellation.active;
+  // Make SHGAN obvious: dim the normal sky during constellation
+  const skyDim  = inConstellation ? 0.18 : 1.0;  // dims regular stars
+  const bokehDim = inConstellation ? 0.25 : 1.0; // dims bokeh blobs
+
+  // Update constellation positions (if active)
+  constellationUpdate(now);
+
+  const px = state.ry / 10;
+  const py = state.rx / 8;
+
+  // Bokeh blobs (freeze movement during constellation so the word is clearer)
+  for (const p of bokeh){
+    if (!inConstellation){
+      p.x += p.vx;
+      p.y += p.vy;
+    }
+    p.p += 0.012;
+
+    if (p.x < -100) p.x = innerWidth + 100;
+    if (p.x > innerWidth + 100) p.x = -100;
+    if (p.y < -100) p.y = innerHeight + 100;
+    if (p.y > innerHeight + 100) p.y = -100;
+
+    const ox = px * 26 * p.depth;
+    const oy = py * 26 * p.depth;
+
+    const alpha = (p.a + Math.sin(p.p)*0.02) * bokehDim;
+    const g = bgCtx.createRadialGradient(p.x+ox, p.y+oy, 0, p.x+ox, p.y+oy, p.r);
+    g.addColorStop(0, `hsla(${p.hue}, 95%, 76%, ${alpha})`);
+    g.addColorStop(1, `hsla(${p.hue}, 95%, 76%, 0)`);
+    bgCtx.fillStyle = g;
+    bgCtx.beginPath();
+    bgCtx.arc(p.x+ox, p.y+oy, p.r, 0, Math.PI*2);
+    bgCtx.fill();
+  }
+
+  // Constellation lines on top of bokeh
+  if (inConstellation) drawConstellationLines();
+
+  // Stars
+  for (let si = 0; si < stars.length; si++){
+    const s = stars[si];
+    const isLocked = !!(constellation.active && constellation.locked && constellation.locked.has(si));
+
+    // Normal stars keep drifting. Locked stars are positioned by constellationUpdate().
+    if (!isLocked){
+      s.t += 0.03;
+      s.x += s.vx;
+      s.y += s.vy;
+
+      if (s.x < -30) s.x = innerWidth + 30;
+      if (s.x > innerWidth + 30) s.x = -30;
+      if (s.y < -30) s.y = innerHeight + 30;
+      if (s.y > innerHeight + 30) s.y = -30;
+
+      s.a = 0.18 + (Math.sin(s.t)+1)*0.12;
+    } else {
+      // Keep a tiny twinkle without moving or overwriting constellation alpha
+      s.t += 0.02;
+      s.a = Math.max(s.a || 0, 0.26 + (Math.sin(s.t)+1)*0.10);
+    }
+
+    const ox = isLocked ? 0 : (px * 34 * s.depth);
+    const oy = isLocked ? 0 : (py * 34 * s.depth);
+
+    bgCtx.save();
+    const baseA = (s.a || 0.22) * (isLocked ? 1.0 : skyDim);
+    bgCtx.globalAlpha = baseA;
+
+    // Locked stars (SHGAN) should be SUPER obvious + still premium
+    bgCtx.fillStyle = isLocked ? "rgba(255,255,255,1)" : "rgba(255,255,255,1)";
+    if (isLocked){
+      bgCtx.shadowColor = "rgba(255,95,165,.95)";
+      bgCtx.shadowBlur = 18;
+    } else {
+      bgCtx.shadowColor = "rgba(255,255,255,.55)";
+      bgCtx.shadowBlur = 10;
+    }
+
+    bgCtx.translate(s.x+ox, s.y+oy);
+    bgCtx.rotate(s.t * 0.25);
+
+    const kScale = isLocked ? 2.75 : 1.0;
+
+    bgCtx.beginPath();
+    bgCtx.moveTo(0, -6*s.s*kScale);
+    bgCtx.lineTo(1.6*s.s*kScale, -1.6*s.s*kScale);
+    bgCtx.lineTo(6*s.s*kScale, 0);
+    bgCtx.lineTo(1.6*s.s*kScale, 1.6*s.s*kScale);
+    bgCtx.lineTo(0, 6*s.s*kScale);
+    bgCtx.lineTo(-1.6*s.s*kScale, 1.6*s.s*kScale);
+    bgCtx.lineTo(-6*s.s*kScale, 0);
+    bgCtx.lineTo(-1.6*s.s*kScale, -1.6*s.s*kScale);
+    bgCtx.closePath();
+    bgCtx.fill();
+    bgCtx.restore();
+  }
+
+  requestAnimationFrame(bgLoop);
+}
+requestAnimationFrame(bgLoop);
 
     /************************************************************
      * Cinematic Burst + helper bursts
@@ -2239,21 +2571,20 @@ ${(MY_ARABIC_MESSAGE||"").trim()}
 
       const sheet = berryOverlay.querySelector(".berrySheet");
       if (sheet){
-        sheet.addEventListener("click", () => closeBerry());
+        sheet.addEventListener("click", (e) => {
+          // don't close when tapping the close button itself
+          if (e.target && e.target.id === "berryClose") return;
+          closeBerry();
+        });
       }
 
+      // ESC to close (desktop safe)
       window.addEventListener("keydown", (e) => {
         if (e.key === "Escape" && berryOverlay.classList.contains("show")) closeBerry();
       });
     }
     // BERRY FEATURE END
 
-    // iOS focus polish
-    setTimeout(() => {
-      const y = window.scrollY;
-      try{ dateInput.focus({preventScroll:true}); }catch{}
-      setTimeout(() => { try{ window.scrollTo(0, y); }catch{} }, 0);
-    }, 500);
   </script>
 </body>
 </html>
