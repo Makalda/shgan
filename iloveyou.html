@@ -1,5 +1,8 @@
 <!--
 ✅ iOS-Optimized (Safari) + No Mouse Tilt (touch + optional motion only)
+✅ + Strawberry CSS Art overlay (tap button to show)
+✅ NOTE: This version keeps your unlock/reveal logic unchanged.
+
 ✅ HOW TO SEND (WhatsApp) + OPEN (Offline)
 1) Save this file as: iloveyou.html
 2) Put these files in the SAME folder:
@@ -79,7 +82,6 @@ Search for:  ======== EDIT HERE ========
       margin:0;
       color:var(--ink);
       overflow-x:hidden; 
-      /*font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji"; */
       font-family: var(--ui-font);
       background:
         radial-gradient(1200px 900px at 20% 0%, #ffffff 0%, #fff1f7 35%, #ffe4ef 65%, #ffeaf3 100%),
@@ -101,24 +103,24 @@ Search for:  ======== EDIT HERE ========
         url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23n)' opacity='.16'/%3E%3C/svg%3E");
     }
 
-/* Romantic soft vignette + animated aurora wash */
-body::after{
-  content:"";
-  position:fixed; inset:-20%;
-  pointer-events:none;
-  z-index:-2;
-  background:
-    radial-gradient(900px 700px at 50% 15%, rgba(255,255,255,.55), rgba(255,255,255,0) 60%),
-    radial-gradient(900px 700px at 12% 70%, rgba(255,79,147,.16), rgba(255,79,147,0) 62%),
-    radial-gradient(900px 700px at 88% 78%, rgba(255,179,199,.18), rgba(255,179,199,0) 65%),
-    radial-gradient(1200px 900px at 50% 110%, rgba(35,26,37,.10), rgba(35,26,37,0) 55%);
-  opacity: .85;
-  animation: auroraFloat 10s ease-in-out infinite alternate;
-}
-@keyframes auroraFloat{
-  0%{ transform: translate3d(-1.5%, -1%, 0) scale(1.02); }
-  100%{ transform: translate3d(1.5%, 1%, 0) scale(1.06); }
-}
+    /* Romantic soft vignette + animated aurora wash */
+    body::after{
+      content:"";
+      position:fixed; inset:-20%;
+      pointer-events:none;
+      z-index:-2;
+      background:
+        radial-gradient(900px 700px at 50% 15%, rgba(255,255,255,.55), rgba(255,255,255,0) 60%),
+        radial-gradient(900px 700px at 12% 70%, rgba(255,79,147,.16), rgba(255,79,147,0) 62%),
+        radial-gradient(900px 700px at 88% 78%, rgba(255,179,199,.18), rgba(255,179,199,0) 65%),
+        radial-gradient(1200px 900px at 50% 110%, rgba(35,26,37,.10), rgba(35,26,37,0) 55%);
+      opacity: .85;
+      animation: auroraFloat 10s ease-in-out infinite alternate;
+    }
+    @keyframes auroraFloat{
+      0%{ transform: translate3d(-1.5%, -1%, 0) scale(1.02); }
+      100%{ transform: translate3d(1.5%, 1%, 0) scale(1.06); }
+    }
 
     /* Fixed canvases for depth particles */
     #bgCanvas, #burstCanvas{
@@ -200,14 +202,8 @@ body::after{
     }
 
     @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
-      .cardInner{
-        background: rgba(255,255,255,.92);
-      }
-      .unlock,
-      .reveal,
-      .msg{
-        background: rgba(255,255,255,.90);
-      }
+      .cardInner{ background: rgba(255,255,255,.92); }
+      .unlock, .reveal, .msg{ background: rgba(255,255,255,.90); }
     }
 
     /* Premium gradient border */
@@ -405,7 +401,7 @@ body::after{
       filter: blur(2px);
     }
 
-    /* Floating micro particles around heart (CSS only; canvas also adds depth) */
+    /* Floating micro particles around heart */
     .micro{
       position:absolute;
       inset:0;
@@ -609,9 +605,7 @@ body::after{
       background-size: cover;
       background-position: var(--photo-x) var(--photo-y);
     }
-    .photo img{
-      display:none !important;
-    }
+    .photo img{ display:none !important; }
     .photo .ph{
       padding: 22px 18px;
       text-align:center;
@@ -625,7 +619,7 @@ body::after{
     .photo[data-has-photo="1"]::after{
       content:"";
       position:absolute;
-      inset: 6px; /* inside the frame so overflow:hidden won't cut it */
+      inset: 6px;
       border-radius: 18px;
       pointer-events:none;
       opacity:0;
@@ -682,8 +676,40 @@ body::after{
       font-size: 16.5px;
       line-height: 1.85;
       color: rgba(35, 26, 37,.96);
-      /* font-family: "Noto Naskh Arabic", "Amiri", "Tahoma", "Arial", system-ui, sans-serif; */
       font-family: var(--arabic-font);
+    }
+
+    /* Pro line-by-line reveal (RTL-safe) */
+    .arabicLines{ display:block; }
+    .arabicLine{
+      display:block;
+      opacity:0;
+      transform: translateY(6px);
+      filter: blur(3px);
+      transition: opacity .55s ease, transform .55s ease, filter .55s ease;
+      will-change: opacity, transform, filter;
+      padding: 2px 0;
+    }
+    .arabicLine.show{
+      opacity:1;
+      transform: translateY(0);
+      filter: blur(0);
+    }
+
+    .typingCursor{
+      display:inline-block;
+      width: 10px;
+      height: 18px;
+      vertical-align: -3px;
+      margin-right: 6px;
+      border-radius: 999px;
+      background: rgba(255,79,147,.55);
+      box-shadow: 0 0 14px rgba(255,79,147,.25);
+      animation: blink 1s ease-in-out infinite;
+    }
+    @keyframes blink{
+      0%,100%{ opacity:.25; }
+      50%{ opacity:1; }
     }
 
     .actions{
@@ -705,7 +731,6 @@ body::after{
       transform: translateZ(18px);
     }
 
-    /* Tiny help for ultra small screens */
     @media (max-width: 360px){
       .row{ flex-direction:column; }
       .btn{ width:100%; }
@@ -716,6 +741,422 @@ body::after{
       *{ animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
       #bgCanvas{ display:none; }
     }
+
+    /* ================= Envelope Unwrap + Secret Toast ================= */
+    .envelopeWrap{
+      max-width: 420px;
+      margin: 14px auto 6px;
+      transform: translateZ(26px);
+      display:grid;
+      place-items:center;
+    }
+    .envelope{
+      width: min(340px, 92%);
+      height: 170px;
+      position: relative;
+      border-radius: 18px;
+      perspective: 900px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      user-select:none;
+      filter: drop-shadow(0 18px 34px rgba(255,79,147,.16));
+    }
+    .envBody{
+      position:absolute; inset:0;
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.72));
+      border: 1px solid rgba(255,255,255,.75);
+      overflow:hidden;
+    }
+    .envBody::before{
+      content:"";
+      position:absolute; inset:-60% -40% auto -40%;
+      height: 220px;
+      background: linear-gradient(115deg,
+        rgba(255,255,255,0) 40%,
+        rgba(255,255,255,.28) 50%,
+        rgba(255,255,255,0) 60%);
+      opacity:.35;
+      transform: translateX(-10%);
+      animation: envSheen 4.6s ease-in-out infinite;
+    }
+    @keyframes envSheen{ 0%,100%{ transform: translateX(-18%);} 50%{ transform: translateX(18%);} }
+
+    .envPocket{
+      position:absolute; inset:0;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255,79,147,.18), rgba(255,255,255,0) 55%),
+        radial-gradient(160px 120px at 30% 20%, rgba(255,179,199,.18), rgba(255,179,199,0) 70%);
+    }
+    .envPocket::after{
+      content:"";
+      position:absolute;
+      left:0; right:0; bottom:0;
+      height:0;
+      border-left:170px solid transparent;
+      border-right:170px solid transparent;
+      border-top:110px solid rgba(255,255,255,.78);
+      opacity:.95;
+      filter: drop-shadow(0 -1px 0 rgba(255,122,169,.20));
+      margin:auto;
+    }
+
+    .envFlap{
+      position:absolute;
+      left:0; right:0; top:0;
+      width:0; height:0;
+      border-left:170px solid transparent;
+      border-right:170px solid transparent;
+      border-bottom:115px solid rgba(255,255,255,.90);
+      margin:auto;
+      transform-origin: 50% 0%;
+      transform: rotateX(0deg);
+      transition: transform .62s cubic-bezier(.2,.9,.12,1);
+      filter: drop-shadow(0 6px 10px rgba(35,26,37,.08));
+    }
+
+    .envBadge{
+      position:absolute;
+      left:50%;
+      bottom:18px;
+      transform: translateX(-50%);
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:10px 14px;
+      border-radius:999px;
+      background: rgba(255,79,147,.12);
+      border: 1px solid rgba(255,79,147,.22);
+      color: rgba(35,26,37,.92);
+      font-weight:900;
+      font-size:13.5px;
+      box-shadow: 0 14px 22px rgba(255,79,147,.12);
+    }
+
+    .envCard{
+      position:absolute;
+      left:14px; right:14px;
+      bottom:14px;
+      height:120px;
+      border-radius:16px;
+      background:
+        radial-gradient(180px 120px at 30% 20%, rgba(255,79,147,.14), rgba(255,79,147,0) 70%),
+        linear-gradient(180deg, rgba(255,255,255,.95), rgba(255,255,255,.78));
+      border: 1px solid rgba(255,255,255,.72);
+      transform: translateY(46px);
+      transition: transform .70s cubic-bezier(.2,.9,.12,1), opacity .45s ease;
+      opacity:0;
+      box-shadow: 0 18px 32px rgba(35,26,37,.10);
+      overflow:hidden;
+    }
+    .envCard::after{
+      content:"";
+      position:absolute; inset:-40% -30% auto -30%;
+      height:180px;
+      background: radial-gradient(220px 120px at 50% 40%, rgba(255,255,255,.75), rgba(255,255,255,0) 70%);
+      opacity:.45;
+    }
+
+    .envelope.open .envFlap{ transform: rotateX(-150deg); }
+    .envelope.open .envCard{ transform: translateY(-6px); opacity:1; }
+
+    .revealContent{
+      display:none;
+      opacity:0;
+      transform: translateY(10px);
+      filter: blur(6px);
+      transition: opacity .55s ease, transform .55s ease, filter .55s ease;
+    }
+    .revealContent.show{
+      display:block;
+      opacity:1;
+      transform: translateY(0);
+      filter: blur(0);
+    }
+
+    .toast{
+      position: fixed;
+      left: 50%;
+      top: calc(14px + env(safe-area-inset-top));
+      transform: translateX(-50%);
+      background: rgba(255,255,255,.88);
+      border: 1px solid rgba(255,255,255,.72);
+      border-radius: 999px;
+      padding: 10px 14px;
+      box-shadow: 0 18px 40px rgba(35,26,37,.12);
+      color: rgba(35,26,37,.95);
+      font-weight: 900;
+      font-size: 13.5px;
+      z-index: 60;
+      opacity:0;
+      pointer-events:none;
+    }
+    .toast.show{ animation: toastInOut 2.2s ease forwards; }
+    @keyframes toastInOut{
+      0%{ opacity:0; transform: translateX(-50%) translateY(-8px); filter: blur(6px); }
+      18%{ opacity:1; transform: translateX(-50%) translateY(0); filter: blur(0); }
+      80%{ opacity:1; }
+      100%{ opacity:0; transform: translateX(-50%) translateY(-10px); }
+    }
+
+    /* BERRY FEATURE START */
+    .berryOverlay{
+      position: fixed;
+      inset: 0;
+      z-index: 65;
+      display: none;
+      place-items: center;
+      padding: calc(18px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(22px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));
+      background: rgba(35,26,37,.24);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      opacity: 0;
+      transition: opacity .22s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .berryOverlay.show{ display:grid; }
+    .berryOverlay.on{ opacity: 1; }
+
+    @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+      .berryOverlay{ background: rgba(35,26,37,.34); }
+    }
+
+    .berrySheet{
+      width: min(420px, 92vw);
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,.72);
+      background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.72));
+      box-shadow: 0 22px 58px rgba(35,26,37,.18);
+      position: relative;
+      overflow: hidden;
+      transform: translateY(12px) scale(.96);
+      opacity: 0;
+      transition: transform .36s cubic-bezier(.2,.9,.12,1), opacity .24s ease;
+      will-change: transform, opacity;
+    }
+
+    .berryOverlay.on .berrySheet{
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      animation: berryPop .62s cubic-bezier(.2,.9,.12,1) both;
+    }
+
+    @keyframes berryPop{
+      0%{ transform: translateY(14px) scale(.92); }
+      55%{ transform: translateY(-2px) scale(1.03); }
+      75%{ transform: translateY(1px) scale(.995); }
+      100%{ transform: translateY(0) scale(1); }
+    }
+
+    .berrySheet::before{
+      content:"";
+      position:absolute;
+      inset:-40% -35% auto -35%;
+      height: 220px;
+      background:
+        radial-gradient(240px 160px at 50% 40%, rgba(255,255,255,.75), rgba(255,255,255,0) 70%),
+        radial-gradient(260px 200px at 20% 10%, rgba(255,79,147,.18), rgba(255,79,147,0) 65%),
+        radial-gradient(260px 200px at 85% 30%, rgba(255,179,199,.18), rgba(255,179,199,0) 65%);
+      opacity:.7;
+      pointer-events:none;
+    }
+
+    .berryClose{
+      position:absolute;
+      top: 10px;
+      right: 10px;
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,122,169,.26);
+      background: rgba(255,255,255,.92);
+      color: rgba(35,26,37,.92);
+      font-weight: 900;
+      font-size: 18px;
+      box-shadow: 0 12px 22px rgba(35,26,37,.10);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .berryClose:active{ transform: scale(.98); }
+
+    .berryStage{
+      padding: 54px 18px 10px;
+      display: grid;
+      place-items: center;
+    }
+
+    .berryText{
+      text-align:center;
+      padding: 8px 16px 16px;
+      color: rgba(109, 90, 103,.92);
+      font-size: 13.5px;
+      font-weight: 800;
+      user-select: none;
+    }
+
+    .strawberry{
+      width: 170px;
+      height: 190px;
+      position: relative;
+      filter: drop-shadow(0 18px 26px rgba(255,79,147,.18));
+    }
+
+    .berryShadow{
+      width: 150px;
+      height: 26px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 50% 50%, rgba(35,26,37,.22), rgba(35,26,37,0) 70%);
+      filter: blur(10px);
+      transform: translateY(76px);
+      opacity: .72;
+    }
+
+    .berryBody{
+      position:absolute;
+      left: 50%;
+      top: 44px;
+      width: 140px;
+      height: 145px;
+      transform: translateX(-50%);
+      border-radius: 55% 55% 66% 66% / 52% 52% 82% 82%;
+      background:
+        radial-gradient(70px 60px at 32% 28%, rgba(255,255,255,.32), rgba(255,255,255,0) 62%),
+        radial-gradient(120px 110px at 35% 40%, rgba(255,79,147,.18), rgba(255,79,147,0) 70%),
+        linear-gradient(180deg, rgba(255,120,165,1) 0%, rgba(255,79,147,1) 42%, rgba(255,47,104,1) 100%);
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,.48),
+        inset 0 -18px 26px rgba(35,26,37,.16);
+      overflow: hidden;
+    }
+
+    .berryBody::after{
+      content:"";
+      position:absolute; inset:0;
+      background:
+        radial-gradient(8px 10px at 18% 40%, rgba(255,255,255,.10), rgba(255,255,255,0) 70%),
+        radial-gradient(10px 12px at 78% 62%, rgba(255,255,255,.08), rgba(255,255,255,0) 70%),
+        radial-gradient(12px 14px at 44% 76%, rgba(255,255,255,.06), rgba(255,255,255,0) 70%);
+      opacity:.85;
+      mix-blend-mode: soft-light;
+      pointer-events:none;
+    }
+
+    .berryHighlight{
+      position:absolute;
+      left: 50%;
+      top: 62px;
+      width: 78px;
+      height: 108px;
+      transform: translateX(-78px) rotate(-10deg);
+      border-radius: 999px;
+      background: radial-gradient(closest-side, rgba(255,255,255,.46), rgba(255,255,255,0) 72%);
+      filter: blur(.2px);
+      opacity: .9;
+      pointer-events:none;
+    }
+
+    .berrySeeds{
+      position:absolute;
+      left: 50%;
+      top: 44px;
+      width: 140px;
+      height: 145px;
+      transform: translateX(-50%);
+      border-radius: 55% 55% 66% 66% / 52% 52% 82% 82%;
+      background:
+        repeating-radial-gradient(circle at 18px 18px,
+          rgba(255,242,198,.95) 0 2px,
+          rgba(255,242,198,.95) 2px 3px,
+          rgba(35,26,37,.12) 3px 4px,
+          rgba(255,255,255,0) 4px 16px);
+      opacity: .92;
+      pointer-events:none;
+      mix-blend-mode: overlay;
+    }
+
+    .berryLeaves{
+      position:absolute;
+      left: 50%;
+      top: 26px;
+      width: 160px;
+      height: 90px;
+      transform: translateX(-50%);
+      pointer-events:none;
+    }
+    .berryLeaves::before,
+    .berryLeaves::after{
+      content:"";
+      position:absolute;
+      left: 50%;
+      top: 14px;
+      width: 150px;
+      height: 76px;
+      transform: translateX(-50%);
+      background:
+        radial-gradient(80px 60px at 50% 30%, rgba(255,255,255,.34), rgba(255,255,255,0) 65%),
+        linear-gradient(180deg, rgba(140, 230, 170, 1) 0%, rgba(54, 196, 120, 1) 58%, rgba(24, 160, 94, 1) 100%);
+      clip-path: polygon(
+        50% 0%,
+        62% 18%, 78% 10%,
+        72% 32%, 92% 34%,
+        76% 48%, 92% 62%,
+        66% 58%, 58% 78%,
+        50% 60%,
+        42% 78%, 34% 58%,
+        8% 62%, 24% 48%,
+        8% 34%, 28% 32%,
+        22% 10%, 38% 18%
+      );
+      border-radius: 22px;
+      filter: drop-shadow(0 10px 16px rgba(35,26,37,.10));
+    }
+    .berryLeaves::after{
+      opacity: .35;
+      filter: blur(1px);
+      transform: translateX(-50%) translateY(2px) scale(.98);
+      mix-blend-mode: soft-light;
+    }
+
+    .berryStem{
+      position:absolute;
+      left: 50%;
+      top: 8px;
+      width: 16px;
+      height: 34px;
+      transform: translateX(-50%) rotate(-6deg);
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(120, 210, 150, 1), rgba(40, 170, 100, 1));
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.30);
+      filter: drop-shadow(0 10px 14px rgba(35,26,37,.10));
+    }
+
+    .strawberry::after{
+      content:"";
+      position:absolute;
+      left: 50%;
+      top: 54px;
+      width: 150px;
+      height: 150px;
+      transform: translateX(-50%);
+      border-radius: 999px;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,.55),
+        0 0 22px rgba(255,79,147,.22),
+        0 0 40px rgba(255,179,199,.18);
+      opacity: 0;
+      animation: berryGlow 1.05s ease forwards;
+      pointer-events:none;
+    }
+    .berryOverlay.on .strawberry::after{ opacity: 1; }
+
+    @keyframes berryGlow{
+      0%{ transform: translateX(-50%) scale(.95); opacity:0; }
+      18%{ opacity:1; }
+      70%{ opacity:.42; }
+      100%{ transform: translateX(-50%) scale(1.04); opacity:0; }
+    }
+    /* BERRY FEATURE END */
   </style>
 </head>
 
@@ -784,14 +1225,14 @@ body::after{
             <div class="row">
               <input id="dateInput" type="text" inputmode="numeric" pattern="[0-9/\.\\- ]*" enterkeyhint="done"
                      autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
-                     placeholder="11012005 أو 11/01/2005 أو 2005-01-11" aria-label="Birthday input" />
+                     placeholder=" The Special Date : " aria-label="Birthday input" />
               <button class="btn" id="unlockBtn" type="button">Unlock</button>
             </div>
 
             <div class="hint" id="hint"></div>
 
             <div class="footerNote" style="margin-top:10px;">
-              Tip: type <b>11012005</b> (it auto becomes 11/01/2005) 💞
+              Tip: type <b> special date </b> (it auto becomes with the xx/xx/xxxx ) 💞
             </div>
           </div>
 
@@ -801,36 +1242,71 @@ body::after{
               <span class="miniPop" aria-hidden="true"></span>
             </div>
 
-            <div class="photo" id="photoBox" aria-label="Photo of Shgan" data-has-photo="0">
-              <div class="ph" id="photoPlaceholder">
-                <div style="font-size:22px; margin-bottom:6px;">📸💗</div>
-                <div><b>Your photo goes here 💗</b></div>
-                <div style="opacity:.85; margin-top:6px;">(Add it in the EDIT HERE section.)</div>
+            <div class="envelopeWrap" id="envelopeWrap">
+              <div class="envelope" id="envelope" role="button" aria-label="Open envelope" tabindex="0">
+                <div class="envBody">
+                  <div class="envPocket"></div>
+                  <div class="envCard" aria-hidden="true"></div>
+                </div>
+                <div class="envFlap" aria-hidden="true"></div>
+                <div class="envBadge" id="envBadge">Tap to open 💌</div>
               </div>
             </div>
 
-            <div class="msg">
-              <div class="arabic" id="arabicMsg"></div>
-            </div>
+            <div class="revealContent" id="revealContent">
+              <div class="photo" id="photoBox" aria-label="Photo of Shgan" data-has-photo="0">
+                <div class="ph" id="photoPlaceholder">
+                  <div style="font-size:22px; margin-bottom:6px;">📸💗</div>
+                  <div><b>Your photo goes here 💗</b></div>
+                  <div style="opacity:.85; margin-top:6px;">(Add it in the EDIT HERE section.)</div>
+                </div>
+              </div>
 
-            <div class="actions">
-              <button class="btn secondary" id="musicBtn" type="button">Play music 🎶</button>
-              <button class="btn secondary" id="motionBtn" type="button">3D Motion ✨</button>
-              <button class="btn secondary" id="saveBtn" type="button">Save this memory 💌</button>
-            </div>
+              <div class="msg">
+                <div class="arabic arabicLines" id="arabicMsg"></div>
+              </div>
 
-            <div class="footerNote" style="margin-top:12px;">
-              Made with a floating heart and a big smile 🌸
+              <div class="actions">
+                <button class="btn secondary" id="musicBtn" type="button">Play music 🎶</button>
+                <button class="btn secondary" id="motionBtn" type="button">3D Motion ✨</button>
+                <button class="btn secondary" id="berryBtn" type="button">Strawberry 🍓</button>
+                <button class="btn secondary" id="saveBtn" type="button">Save this memory 💌</button>
+              </div>
+
+              <div class="footerNote" style="margin-top:12px;">
+                Made with a floating heart and a big smile 🌸
+              </div>
             </div>
           </div>
 
           <div class="footerNote" id="copyrightNote">
-            💡 Enter 31/07/2004 soul to unlock
+            © 2024 Made with ❤️ by Obai for Shgan
           </div>
         </div>
       </div>
     </section>
   </main>
+
+  <!-- BERRY FEATURE START -->
+  <div class="berryOverlay" id="berryOverlay" aria-hidden="true">
+    <div class="berrySheet" role="dialog" aria-modal="true" aria-label="Strawberry surprise">
+      <button class="berryClose" id="berryClose" type="button" aria-label="Close">✕</button>
+
+      <div class="berryStage" aria-hidden="true">
+        <div class="berryShadow"></div>
+        <div class="strawberry" role="img" aria-label="Cute strawberry">
+          <div class="berryBody"></div>
+          <div class="berryHighlight"></div>
+          <div class="berrySeeds"></div>
+          <div class="berryLeaves"></div>
+          <div class="berryStem"></div>
+        </div>
+      </div>
+
+      <div class="berryText">Tap anywhere to close 💗</div>
+    </div>
+  </div>
+  <!-- BERRY FEATURE END -->
 
   <script>
     /************************************************************
@@ -884,6 +1360,12 @@ body::after{
     // base64 data URL OR local filename (same folder)
     const MUSIC_SOURCE = "yamalayaly.mp3"; // e.g. "yamalayaly.mp3" or "" to disable
 
+    // (6) Reveal pacing (readable)
+    const ENABLE_ENVELOPE = false; // set to false if you want to remove the envelope for now
+    const LINE_DELAY_MIN = 480;   // ms (slower = bigger)
+    const LINE_DELAY_MAX = 720;   // ms
+    const EXTRA_PAUSE_EMPTY_LINE = 990; // extra pause when the line is empty
+
     /************************************************************
      * ===================== END EDIT HERE =======================
      ************************************************************/
@@ -903,12 +1385,22 @@ body::after{
     const unlockBox = document.getElementById("unlockBox");
     const reveal = document.getElementById("reveal");
 
+    const envelopeWrap = document.getElementById("envelopeWrap");
+    const envelope = document.getElementById("envelope");
+    const revealContent = document.getElementById("revealContent");
+
     const photoBox = document.getElementById("photoBox");
     const photoPlaceholder = document.getElementById("photoPlaceholder");
     const arabicMsg = document.getElementById("arabicMsg");
     const musicBtn = document.getElementById("musicBtn");
     const motionBtn = document.getElementById("motionBtn");
     const saveBtn = document.getElementById("saveBtn");
+
+    // BERRY FEATURE START
+    const berryBtn = document.getElementById("berryBtn");
+    const berryOverlay = document.getElementById("berryOverlay");
+    const berryClose = document.getElementById("berryClose");
+    // BERRY FEATURE END
 
     const bgCanvas = document.getElementById("bgCanvas");
     const burstCanvas = document.getElementById("burstCanvas");
@@ -921,20 +1413,18 @@ body::after{
       const x = Math.max(0, Math.min(100, Number(PHOTO_FOCUS_X)));
       const y = Math.max(0, Math.min(100, Number(PHOTO_FOCUS_Y)));
 
-      // CSS variables (used by CSS)
       document.documentElement.style.setProperty("--photo-x", `${x}%`);
       document.documentElement.style.setProperty("--photo-y", `${y}%`);
 
-      // Direct style fallback for iOS: drive background-position on the photo container
       if (photoBox){
         photoBox.style.backgroundPosition = `${x}% ${y}%`;
       }
     }
-
     applyPhotoFocus();
 
-    /* Apply message */
-    arabicMsg.textContent = (MY_ARABIC_MESSAGE || "").trim();
+    // We'll reveal Arabic message line-by-line after the envelope opens
+    const FULL_ARABIC = (MY_ARABIC_MESSAGE || "").trim();
+    arabicMsg.textContent = "";
 
     /* Load photo (iOS-reliable: use background-image on the photo container) */
     if (SHGAN_PHOTO && SHGAN_PHOTO.trim()) {
@@ -944,7 +1434,6 @@ body::after{
         photoBox.dataset.hasPhoto = "1";
       }
       photoPlaceholder.style.display = "none";
-      // Apply focus again after paint
       requestAnimationFrame(() => applyPhotoFocus());
     }
 
@@ -958,6 +1447,12 @@ body::after{
       musicBtn.textContent = "Play music 🎶 (add later)";
     }
 
+    // Secret toast (for heart easter egg)
+    const toast = document.createElement("div");
+    toast.className = "toast";
+    toast.id = "toast";
+    document.body.appendChild(toast);
+
     function setHint(text, good=false) {
       hint.textContent = text;
       hint.style.color = good ? "rgba(37, 120, 76, .95)" : "rgba(109, 90, 103,.95)";
@@ -970,20 +1465,86 @@ body::after{
       setTimeout(() => el.classList.remove("shake"), 450);
     }
 
-    /* Date parsing: accepts dd/mm/yyyy, dd-mm-yyyy, dd.mm.yyyy, yyyy-mm-dd */
+    function revealArabicLineByLine(text){
+      const lines = (text || "").split(/\n/);
+      let i = 0;
+
+      arabicMsg.innerHTML = "";
+      if (arabicMsg._revealTimer) {
+        clearTimeout(arabicMsg._revealTimer);
+        arabicMsg._revealTimer = null;
+      }
+
+      const cursor = document.createElement("span");
+      cursor.className = "typingCursor";
+      cursor.setAttribute("aria-hidden", "true");
+      arabicMsg.appendChild(cursor);
+
+      const extraPauseForLine = (line) => {
+        const t = (line || "").trim();
+        if (!t) return EXTRA_PAUSE_EMPTY_LINE;
+        if (/[\.\!\?؟…]$/.test(t)) return 260;
+        if (/[,:،؛]$/.test(t)) return 160;
+        return 0;
+      };
+
+      const step = () => {
+        if (i >= lines.length) {
+          cursor.remove();
+          arabicMsg._revealTimer = null;
+          return;
+        }
+
+        const lineText = lines[i];
+
+        if (!lineText.trim()) {
+          const gap = document.createElement("div");
+          gap.style.height = "10px";
+          gap.style.opacity = "0";
+          arabicMsg.insertBefore(gap, cursor);
+
+          const delay = (LINE_DELAY_MIN + Math.floor(Math.random() * Math.max(1, (LINE_DELAY_MAX - LINE_DELAY_MIN) + 1)))
+                        + extraPauseForLine(lineText);
+          i++;
+          arabicMsg._revealTimer = setTimeout(step, delay);
+          return;
+        }
+
+        const lineEl = document.createElement("span");
+        lineEl.className = "arabicLine";
+        lineEl.textContent = lineText;
+        arabicMsg.insertBefore(lineEl, cursor);
+
+        void lineEl.offsetWidth;
+        lineEl.classList.add("show");
+
+        const delay = (LINE_DELAY_MIN + Math.floor(Math.random() * Math.max(1, (LINE_DELAY_MAX - LINE_DELAY_MIN) + 1)))
+                      + extraPauseForLine(lineText);
+        i++;
+        arabicMsg._revealTimer = setTimeout(step, delay);
+      };
+
+      step();
+    }
+
+    function showToast(text){
+      toast.textContent = text;
+      toast.classList.remove("show");
+      void toast.offsetWidth;
+      toast.classList.add("show");
+    }
+
+    /* Date parsing */
     function parseDate(input) {
       if (!input) return null;
       const s = input.trim();
 
-      // yyyy-mm-dd
       let m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
       if (m) return { y:+m[1], m:+m[2], d:+m[3] };
 
-      // dd/mm/yyyy or dd-mm-yyyy or dd.mm.yyyy
       m = s.match(/^(\d{2})[\/\-.](\d{2})[\/\-.](\d{4})$/);
       if (m) return { d:+m[1], m:+m[2], y:+m[3] };
 
-      // try compact digits ddmmyyyy
       const digits = s.replace(/\D/g, "");
       if (digits.length === 8) {
         return { d:+digits.slice(0,2), m:+digits.slice(2,4), y:+digits.slice(4) };
@@ -999,8 +1560,6 @@ body::after{
     /* Auto-format digits: 11012005 -> 11/01/2005 */
     dateInput.addEventListener("input", () => {
       const raw = dateInput.value;
-
-      // If user types yyyy-mm-dd, leave it alone
       if (/^\d{4}-\d{2}-\d{2}$/.test(raw.trim())) return;
 
       const digits = raw.replace(/\D/g, "").slice(0,8);
@@ -1010,7 +1569,6 @@ body::after{
       if (digits.length >= 3) formatted = digits.slice(0,2) + "/" + digits.slice(2);
       if (digits.length >= 5) formatted = digits.slice(0,2) + "/" + digits.slice(2,4) + "/" + digits.slice(4);
 
-      // apply only when mostly digits
       const compact = raw.replace(/\s/g,"");
       if (compact.length <= digits.length + 2) dateInput.value = formatted;
     });
@@ -1018,7 +1576,6 @@ body::after{
     function showReveal(){
       setHint("Unlocked! ✨💗", true);
 
-      // cinematic fade out unlock
       unlockBox.style.opacity = "0";
       unlockBox.style.transform = "translateY(-6px)";
       unlockBox.style.transition = "opacity .45s ease, transform .45s ease";
@@ -1026,10 +1583,28 @@ body::after{
       setTimeout(() => {
         unlockBox.style.display = "none";
         reveal.classList.add("show");
+
+        envelopeOpened = false;
+        if (revealContent) revealContent.classList.remove("show");
+        if (envelope) envelope.classList.remove("open");
+        if (envelopeWrap) envelopeWrap.style.display = "";
+        arabicMsg.textContent = "";
+
+        if (!ENABLE_ENVELOPE){
+          if (envelopeWrap) envelopeWrap.style.display = "none";
+
+          setTimeout(() => {
+            if (revealContent) revealContent.classList.add("show");
+          }, 260);
+
+          setTimeout(() => {
+            revealArabicLineByLine(FULL_ARABIC);
+          }, 620);
+        }
+
         burstCinematic();
       }, 480);
 
-      // auto play (allowed because user clicked Unlock)
       if (audioEl) {
         audioEl.play().then(() => {
           musicBtn.textContent = "Pause music ⏸️";
@@ -1055,10 +1630,9 @@ body::after{
       if (e.key === "Enter") tryUnlock();
     });
 
-    // Keep your hint (exactly like you wanted earlier)
-    setHint("💡 Enter 31/07/2004 soul to unlock");
+    setHint("💡 Enter my soulmate birthday date to unlock");
 
-    /* Music button (user-gesture compliant) */
+    /* Music button */
     musicBtn.addEventListener("click", async () => {
       if (!audioEl) {
         gentleShake(musicBtn);
@@ -1101,7 +1675,7 @@ ${(MY_ARABIC_MESSAGE||"").trim()}
     });
 
     /************************************************************
-     * 3D INTERACTION: Parallax + Tilt (mouse/touch + device)
+     * 3D INTERACTION: Touch tilt + optional device orientation
      ************************************************************/
     const state = {
       targetRX: 0, targetRY: 0,
@@ -1113,33 +1687,26 @@ ${(MY_ARABIC_MESSAGE||"").trim()}
       usingDevice: false
     };
 
-    // Smooth spring (critically damped-ish)
     function spring(current, target, stiffness=0.12){
       return current + (target - current) * stiffness;
     }
-
     function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
 
-    // Pointer tilt fallback
     function pointerToTilt(clientX, clientY){
       const rect = card.getBoundingClientRect();
       const px = (clientX - (rect.left + rect.width/2)) / (rect.width/2);
       const py = (clientY - (rect.top + rect.height/2)) / (rect.height/2);
 
-      // tilt range
-      state.targetRY = clamp(px * 10, -10, 10);  // left-right
-      state.targetRX = clamp(-py * 8, -8, 8);    // up-down
+      state.targetRY = clamp(px * 10, -10, 10);
+      state.targetRX = clamp(-py * 8, -8, 8);
 
-      // light follows finger
       state.targetLX = clamp((px*50 + 50), 8, 92);
       state.targetLY = clamp((py*40 + 30), 8, 92);
 
-      // shadow offsets
       state.targetSX = clamp(px * 10, -10, 10);
       state.targetSY = clamp(18 + py * 10, 8, 30);
     }
 
-    // Touch on card
     card.addEventListener("touchmove", (e) => {
       if (state.usingDevice) return;
       const t = e.touches[0];
@@ -1147,8 +1714,7 @@ ${(MY_ARABIC_MESSAGE||"").trim()}
       pointerToTilt(t.clientX, t.clientY);
     }, { passive:true });
 
-    // Reset tilt when user lifts finger
-    card.addEventListener("touchend", () => {
+    function resetTilt(){
       if (state.usingDevice) return;
       state.targetRX = 0;
       state.targetRY = 0;
@@ -1156,24 +1722,13 @@ ${(MY_ARABIC_MESSAGE||"").trim()}
       state.targetLY = 30;
       state.targetSX = 0;
       state.targetSY = 18;
-    }, { passive:true });
+    }
+    card.addEventListener("touchend", resetTilt, { passive:true });
+    card.addEventListener("touchcancel", resetTilt, { passive:true });
 
-    card.addEventListener("touchcancel", () => {
-      if (state.usingDevice) return;
-      state.targetRX = 0;
-      state.targetRY = 0;
-      state.targetLX = 50;
-      state.targetLY = 30;
-      state.targetSX = 0;
-      state.targetSY = 18;
-    }, { passive:true });
-
-    // Device orientation (mobile)
     function handleOrientation(ev){
-      // Some devices require user permission; we'll activate if it fires.
-      // gamma: left-right, beta: front-back
-      const gamma = ev.gamma ?? 0; // -90..90
-      const beta  = ev.beta ?? 0;  // -180..180
+      const gamma = ev.gamma ?? 0;
+      const beta  = ev.beta ?? 0;
       const g = clamp(gamma / 35, -1, 1);
       const b = clamp(beta  / 35, -1, 1);
 
@@ -1190,7 +1745,6 @@ ${(MY_ARABIC_MESSAGE||"").trim()}
     }
 
     let orientationEnabled = false;
-
     function enableOrientation(){
       if (orientationEnabled) return;
       window.addEventListener("deviceorientation", handleOrientation, true);
@@ -1198,7 +1752,6 @@ ${(MY_ARABIC_MESSAGE||"").trim()}
       setHint("3D Motion enabled ✨", true);
     }
 
-    // Setup Motion button (iOS 13+ requires requestPermission inside user gesture)
     (function setupMotionButton(){
       if (!motionBtn) return;
 
@@ -1209,7 +1762,6 @@ ${(MY_ARABIC_MESSAGE||"").trim()}
       }
 
       motionBtn.addEventListener("click", async () => {
-        // iOS 13+ permission
         try{
           const DOE = window.DeviceOrientationEvent;
           if (DOE && typeof DOE.requestPermission === "function"){
@@ -1222,8 +1774,6 @@ ${(MY_ARABIC_MESSAGE||"").trim()}
             }
             return;
           }
-
-          // Non-iOS permission model
           enableOrientation();
         }catch(e){
           setHint("Motion not available on this device 💞", false);
@@ -1232,17 +1782,13 @@ ${(MY_ARABIC_MESSAGE||"").trim()}
       }, { passive:true });
     })();
 
-    // Animation loop
     let t0 = performance.now();
     function tick(now){
-      const dt = Math.min(32, now - t0);
       t0 = now;
 
-      // float
       const float = Math.sin(now/900) * 6;
       document.documentElement.style.setProperty("--floatY", `${float}px`);
 
-      // spring to targets
       state.rx = spring(state.rx, state.targetRX, 0.10);
       state.ry = spring(state.ry, state.targetRY, 0.10);
 
@@ -1252,7 +1798,6 @@ ${(MY_ARABIC_MESSAGE||"").trim()}
       state.sx = spring(state.sx, state.targetSX, 0.10);
       state.sy = spring(state.sy, state.targetSY, 0.10);
 
-      // apply CSS vars
       document.documentElement.style.setProperty("--rx", `${state.rx}deg`);
       document.documentElement.style.setProperty("--ry", `${state.ry}deg`);
       document.documentElement.style.setProperty("--tz", `0px`);
@@ -1263,7 +1808,6 @@ ${(MY_ARABIC_MESSAGE||"").trim()}
       document.documentElement.style.setProperty("--sx", `${state.sx}px`);
       document.documentElement.style.setProperty("--sy", `${state.sy}px`);
 
-      // Parallax background blobs respond subtly
       document.documentElement.style.setProperty("--bx", `${state.ry * 2}px`);
       document.documentElement.style.setProperty("--by", `${state.rx * -2}px`);
 
@@ -1272,7 +1816,7 @@ ${(MY_ARABIC_MESSAGE||"").trim()}
     requestAnimationFrame(tick);
 
     /************************************************************
-     * Canvas Background: Multi-depth bokeh + sparkles
+     * Canvas Background
      ************************************************************/
     const bgCtx = bgCanvas.getContext("2d", { alpha:true });
     const burstCtx = burstCanvas.getContext("2d", { alpha:true });
@@ -1301,7 +1845,7 @@ ${(MY_ARABIC_MESSAGE||"").trim()}
       { count: 22, rmin: 18, rmax: 66, alpha: [0.07,0.18], speed: 0.09, hue: [332,356], depth: 0.30 },
       { count: 18, rmin: 14, rmax: 52, alpha: [0.06,0.15], speed: 0.16, hue: [328,352], depth: 0.55 },
       { count: 12, rmin: 10, rmax: 38, alpha: [0.05,0.12], speed: 0.24, hue: [322,348], depth: 0.88 },
-  ];
+    ];
 
     let bokeh = [];
     let stars = [];
@@ -1345,8 +1889,7 @@ ${(MY_ARABIC_MESSAGE||"").trim()}
       bgCtx.setTransform(bgDpr,0,0,bgDpr,0,0);
       bgCtx.clearRect(0,0,innerWidth,innerHeight);
 
-      // parallax from tilt
-      const px = state.ry / 10; // -1..1
+      const px = state.ry / 10;
       const py = state.rx / 8;
 
       for (const p of bokeh){
@@ -1415,7 +1958,7 @@ ${(MY_ARABIC_MESSAGE||"").trim()}
     requestAnimationFrame(bgLoop);
 
     /************************************************************
-     * Cinematic Burst: heart confetti + sparkles
+     * Cinematic Burst + helper bursts
      ************************************************************/
     let burstParts = [];
 
@@ -1451,7 +1994,6 @@ ${(MY_ARABIC_MESSAGE||"").trim()}
         burstCtx.setTransform(burstDpr,0,0,burstDpr,0,0);
         burstCtx.clearRect(0,0,innerWidth,innerHeight);
 
-        // light flash
         const flash = Math.max(0, 1 - t/420);
         if (flash > 0){
           burstCtx.globalAlpha = flash * 0.24;
@@ -1470,7 +2012,6 @@ ${(MY_ARABIC_MESSAGE||"").trim()}
           if (p.life <= 0) continue;
           p.life -= 1;
 
-          // gravity
           p.vy += 0.055;
           p.x += p.vx;
           p.y += p.vy;
@@ -1487,7 +2028,6 @@ ${(MY_ARABIC_MESSAGE||"").trim()}
           burstCtx.shadowBlur = 18;
 
           if (p.heart){
-            // tiny heart shape
             burstCtx.fillStyle = `hsla(${p.hue}, 95%, 74%, 1)`;
             burstCtx.beginPath();
             const s = 3.4 + p.r;
@@ -1497,7 +2037,6 @@ ${(MY_ARABIC_MESSAGE||"").trim()}
             burstCtx.closePath();
             burstCtx.fill();
           } else {
-            // sparkle star
             burstCtx.fillStyle = "rgba(255,255,255,1)";
             const k = p.r * 6;
             burstCtx.beginPath();
@@ -1516,7 +2055,6 @@ ${(MY_ARABIC_MESSAGE||"").trim()}
           burstCtx.restore();
         }
 
-
         const alive = burstParts.some(p => p.life > 0);
         if (alive && t < 2200) requestAnimationFrame(step);
         else setTimeout(() => burstCanvas.classList.remove("show"), 200);
@@ -1525,11 +2063,195 @@ ${(MY_ARABIC_MESSAGE||"").trim()}
       requestAnimationFrame(step);
     }
 
-    // focus input (polish)
+    function burstSmall(x, y){
+      burstCanvas.classList.add("show");
+      const parts = [];
+      const N = 46;
+
+      for (let i=0;i<N;i++){
+        const a = rand(0, Math.PI*2);
+        const sp = rand(1.4, 4.0);
+        const isHeart = Math.random() < 0.34;
+        parts.push({
+          x, y,
+          vx: Math.cos(a)*sp,
+          vy: Math.sin(a)*sp - rand(0.6, 1.4),
+          r: rand(0.9, 2.2),
+          life: rand(26, 48),
+          hue: rand(332, 356),
+          rot: rand(0, Math.PI*2),
+          vr: rand(-0.28, 0.28),
+          heart: isHeart
+        });
+      }
+
+      const start = performance.now();
+      function step(now){
+        const t = now - start;
+        burstCtx.setTransform(burstDpr,0,0,burstDpr,0,0);
+        burstCtx.clearRect(0,0,innerWidth,innerHeight);
+
+        for (const p of parts){
+          if (p.life <= 0) continue;
+          p.life -= 1;
+          p.vy += 0.06;
+          p.x += p.vx;
+          p.y += p.vy;
+          p.rot += p.vr;
+
+          const alpha = Math.min(1, p.life/48);
+          burstCtx.save();
+          burstCtx.globalAlpha = alpha;
+          burstCtx.translate(p.x, p.y);
+          burstCtx.rotate(p.rot);
+          burstCtx.shadowColor = "rgba(255,79,147,.45)";
+          burstCtx.shadowBlur = 14;
+
+          if (p.heart){
+            burstCtx.fillStyle = `hsla(${p.hue}, 95%, 74%, 1)`;
+            burstCtx.beginPath();
+            const s = 3.0 + p.r;
+            burstCtx.moveTo(0, s*1.2);
+            burstCtx.bezierCurveTo(-s*1.4, s*0.2, -s*1.2, -s*1.1, 0, -s*0.25);
+            burstCtx.bezierCurveTo(s*1.2, -s*1.1, s*1.4, s*0.2, 0, s*1.2);
+            burstCtx.closePath();
+            burstCtx.fill();
+          } else {
+            burstCtx.fillStyle = "rgba(255,255,255,1)";
+            const k = p.r * 6;
+            burstCtx.beginPath();
+            burstCtx.moveTo(0, -k);
+            burstCtx.lineTo(k*0.28, -k*0.28);
+            burstCtx.lineTo(k, 0);
+            burstCtx.lineTo(k*0.28, k*0.28);
+            burstCtx.lineTo(0, k);
+            burstCtx.lineTo(-k*0.28, k*0.28);
+            burstCtx.lineTo(-k, 0);
+            burstCtx.lineTo(-k*0.28, -k*0.28);
+            burstCtx.closePath();
+            burstCtx.fill();
+          }
+          burstCtx.restore();
+        }
+
+        const alive = parts.some(p => p.life > 0);
+        if (alive && t < 1200) requestAnimationFrame(step);
+        else setTimeout(() => burstCanvas.classList.remove("show"), 180);
+      }
+      requestAnimationFrame(step);
+    }
+
+    function burstSmallAtElement(el){
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      const cx = r.left + r.width * 0.5;
+      const cy = r.top + r.height * 0.45;
+      burstSmall(cx, cy);
+    }
+
+    // Envelope Unwrap
+    let envelopeOpened = false;
+
+    function openEnvelope(){
+      if (!ENABLE_ENVELOPE) return;
+      if (envelopeOpened) return;
+      envelopeOpened = true;
+
+      if (envelope) envelope.classList.add("open");
+      burstSmallAtElement(envelope);
+
+      setTimeout(() => {
+        if (revealContent) revealContent.classList.add("show");
+        revealArabicLineByLine(FULL_ARABIC);
+      }, 520);
+    }
+
+    if (envelope){
+      envelope.addEventListener("click", openEnvelope);
+      envelope.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") openEnvelope();
+      });
+    }
+
+    // Easter egg
+    const heartEl = document.querySelector(".heart3D");
+    let tapTimes = [];
+    let secretShown = false;
+
+    if (heartEl){
+      heartEl.addEventListener("click", () => {
+        if (secretShown) return;
+
+        const now = performance.now();
+        tapTimes.push(now);
+        tapTimes = tapTimes.filter(t => now - t <= 4000);
+
+        if (tapTimes.length >= 5){
+          secretShown = true;
+          const secret = "سر صغير… إنتِ أجمل شي صار بحياتي 💗";
+          showToast(secret);
+          setHint(secret, true);
+          burstSmallAtElement(heartEl);
+        }
+      }, { passive:true });
+    }
+
+    // BERRY FEATURE START
+    function openBerry(){
+      if (!berryOverlay) return;
+      berryOverlay.classList.add("show");
+      berryOverlay.setAttribute("aria-hidden", "false");
+
+      requestAnimationFrame(() => {
+        berryOverlay.classList.add("on");
+      });
+
+      try{
+        const sheet = berryOverlay.querySelector(".berrySheet");
+        if (sheet) burstSmallAtElement(sheet);
+      }catch{}
+    }
+
+    function closeBerry(){
+      if (!berryOverlay) return;
+      berryOverlay.classList.remove("on");
+      berryOverlay.setAttribute("aria-hidden", "true");
+      setTimeout(() => {
+        berryOverlay.classList.remove("show");
+      }, 260);
+    }
+
+    if (berryBtn){
+      berryBtn.addEventListener("click", () => openBerry(), { passive:true });
+    }
+
+    if (berryClose){
+      berryClose.addEventListener("click", (e) => {
+        e.stopPropagation();
+        closeBerry();
+      });
+    }
+
+    if (berryOverlay){
+      berryOverlay.addEventListener("click", (e) => {
+        if (e.target === berryOverlay) closeBerry();
+      });
+
+      const sheet = berryOverlay.querySelector(".berrySheet");
+      if (sheet){
+        sheet.addEventListener("click", () => closeBerry());
+      }
+
+      window.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && berryOverlay.classList.contains("show")) closeBerry();
+      });
+    }
+    // BERRY FEATURE END
+
+    // iOS focus polish
     setTimeout(() => {
       const y = window.scrollY;
       try{ dateInput.focus({preventScroll:true}); }catch{}
-      // iOS sometimes still jumps; snap back.
       setTimeout(() => { try{ window.scrollTo(0, y); }catch{} }, 0);
     }, 500);
   </script>
