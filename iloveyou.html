@@ -1,27 +1,3 @@
-<!--
-✅ iOS-Optimized (Safari) + No Mouse Tilt (touch + optional motion only)
-✅ + Strawberry CSS Art overlay (tap button to show)
-✅ NOTE: This version keeps your unlock/reveal logic unchanged.
-
-✅ HOW TO SEND (WhatsApp) + OPEN (Offline)
-1) Save this file as: iloveyou.html
-2) Put these files in the SAME folder:
-   - iloveyou.html
-   - shgan.jpg  (or .png)  ← Shgan photo (optional, but recommended)
-   - music.mp3  (optional)
-3) Send them on WhatsApp as DOCUMENTS (not as image/video).
-4) On her phone: download them, keep them in the same folder, then open iloveyou.html:
-   - Android: tap HTML → “Open with” → Chrome
-   - iPhone: Save to Files → tap HTML → Share → “Open in Safari”
-
-✍️ WHERE TO EDIT
-Search for:  ======== EDIT HERE ========
-- SHGAN_PHOTO: base64 data URL OR a local filename (same folder)
-- PHOTO_FOCUS_X / PHOTO_FOCUS_Y: fixes crop (so her face shows, not just forehead)
-- MY_ARABIC_MESSAGE: your Arabic message (RTL + line breaks + emojis)
-- MUSIC_SOURCE: base64 data URL OR local filename (same folder)
--->
-
 <!doctype html>
 <html lang="en">
 <head>
@@ -635,21 +611,24 @@ Search for:  ======== EDIT HERE ========
 
     .photo[data-has-photo="1"]::before{
       background:
-        radial-gradient(6px 6px at 14% 18%, rgba(255,255,255,.95), rgba(255,255,255,0) 70%),
-        radial-gradient(5px 5px at 82% 24%, rgba(255,255,255,.92), rgba(255,255,255,0) 70%),
+        radial-gradient(6px 6px at 14% 26%, rgba(255,255,255,.95), rgba(255,255,255,0) 70%),
+        radial-gradient(5px 5px at 82% 28%, rgba(255,255,255,.92), rgba(255,255,255,0) 70%),
         radial-gradient(7px 7px at 22% 86%, rgba(255,255,255,.90), rgba(255,255,255,0) 70%),
         radial-gradient(6px 6px at 88% 78%, rgba(255,255,255,.90), rgba(255,255,255,0) 70%),
-        radial-gradient(10px 10px at 52% 6%, rgba(255,255,255,.80), rgba(255,255,255,0) 70%);
+        radial-gradient(10px 10px at 52% 94%, rgba(255,255,255,.80), rgba(255,255,255,0) 70%),
+        radial-gradient(6px 6px at 46% 72%, rgba(255,255,255,.86), rgba(255,255,255,0) 70%),
+        radial-gradient(5px 5px at 64% 90%, rgba(255,255,255,.82), rgba(255,255,255,0) 70%);
       filter: blur(.2px);
     }
 
     .photo[data-has-photo="1"]::after{
-      background: radial-gradient(closest-side, rgba(255,255,255,.30), rgba(255,255,255,0) 70%);
+      background: radial-gradient(closest-side at 50% 80%, rgba(255,255,255,.32), rgba(255,255,255,0) 70%);
       box-shadow:
         0 0 0 1px rgba(255,255,255,.55),
         0 0 18px rgba(255,79,147,.18),
         0 0 28px rgba(255,179,199,.14);
       filter: blur(1px);
+      transform: translateY(6px);
     }
 
     @keyframes photoSparkOnce{
@@ -660,9 +639,11 @@ Search for:  ======== EDIT HERE ========
     }
 
     .reveal.show .photo[data-has-photo="1"]::before,
-    .reveal.show .photo[data-has-photo="1"]::after{
+    .reveal.show .photo[data-has-photo="1"]::after,
+    .photo[data-has-photo="1"].sparkNow::before,
+    .photo[data-has-photo="1"].sparkNow::after{
       animation: photoSparkOnce 1.05s ease-out 1 forwards;
-    }
+}
 
     .msg{
       max-width: 400px;
@@ -910,7 +891,7 @@ Search for:  ======== EDIT HERE ========
     .berryOverlay{
       position: fixed;
       inset: 0;
-      z-index: 65;
+      z-index: 500;
       display: none;
       place-items: center;
       padding: calc(18px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(22px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));
@@ -1163,10 +1144,230 @@ Search for:  ======== EDIT HERE ========
       100%{ transform: translateX(-50%) scale(1.04); opacity:0; }
     }
     /* BERRY FEATURE END */
+
+    /* =============================
+       TEASER MERGED START (scoped)
+       ============================= */
+
+    /* Two-screen system */
+    .screen{
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+    #teaserScreen{
+      z-index: 200;
+      display: block;
+    }
+    #giftScreen{
+      z-index: 10;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(1.01);
+      filter: blur(10px);
+      transition: opacity .9s ease, transform .9s ease, filter .9s ease;
+    }
+    #giftScreen.isVisible{
+      opacity: 1;
+      pointer-events: auto;
+      transform: scale(1);
+      filter: blur(0);
+    }
+    #teaserScreen.fadeOut{
+      opacity: 0;
+      transform: scale(1.02);
+      filter: blur(10px);
+      transition: opacity .7s ease, transform .7s ease, filter .7s ease;
+      pointer-events: none;
+    }
+
+    /* Teaser design — fully scoped so it won't affect the gift page */
+    #teaserScreen{
+      --t-bg-1: #0b0d14;
+      --t-bg-2: #141829;
+      --t-text: #ffffff;
+      --t-soft: rgba(255, 255, 255, 0.75);
+      --t-accent-start: #ff7eb6;
+      --t-accent-end: #ffb6d5;
+      background: radial-gradient(circle at top, var(--t-bg-2), var(--t-bg-1));
+      color: var(--t-text);
+      overflow: hidden;
+    }
+
+    #teaserScreen *{
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+    }
+
+    #teaserScreen .vignette{
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle, transparent 60%, rgba(0, 0, 0, 0.6) 100%);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    #teaserScreen .container{
+      position: relative;
+      z-index: 5;
+      height: 100%;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+    }
+
+    #teaserScreen .starfield{
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    #teaserScreen .star{
+      position: absolute;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 50%;
+      width: 2px;
+      height: 2px;
+      opacity: 0.8;
+    }
+
+    @keyframes teaserTwinkle{
+      0%, 100% { opacity: 0.6; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.4); }
+    }
+
+    @keyframes teaserFlash{
+      0% { transform: scale(1); opacity: 0.8; }
+      50% { transform: scale(1.8); opacity: 1; }
+      100% { transform: scale(1); opacity: 0.8; }
+    }
+
+    #teaserScreen .starfield.flash .star{
+      animation: teaserFlash 0.6s ease-in-out 4;
+    }
+
+    #teaserScreen .glow{
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(255, 145, 186, 0.25), transparent 60%),
+        radial-gradient(circle at 50% 50%, rgba(191, 126, 253, 0.15), transparent 70%);
+      animation: teaserBreathe 12s ease-in-out infinite;
+      pointer-events: none;
+      z-index: 1;
+      mix-blend-mode: screen;
+    }
+
+    @keyframes teaserBreathe{
+      0%, 100% { transform: scale(1); opacity: 0.8; }
+      50% { transform: scale(1.05); opacity: 1; }
+    }
+
+    #teaserScreen .countdown{
+      font-size: 3.6rem;
+      letter-spacing: 0.15em;
+      font-weight: 500;
+      animation: teaserPulse 2.8s ease-in-out infinite;
+    }
+
+    @keyframes teaserPulse{
+      0% { transform: scale(1); opacity: 0.95; }
+      50% { transform: scale(1.03); opacity: 1; }
+      100% { transform: scale(1); opacity: 0.95; }
+    }
+
+    #teaserScreen .subtitle{
+      margin-top: 20px;
+      font-size: 1rem;
+      color: var(--t-soft);
+    }
+
+    #teaserScreen .hidden{
+      opacity: 0;
+      transform: scale(0.96);
+      pointer-events: none;
+    }
+
+    #teaserScreen .fade{
+      transition: opacity 1s ease, transform 1s ease;
+    }
+
+    #teaserScreen .message{
+      font-size: 2.4rem;
+      margin-bottom: 28px;
+      color: var(--t-text);
+    }
+
+    #teaserScreen .cta{
+      padding: 14px 32px;
+      border-radius: 999px;
+      font-size: 1rem;
+      border: none;
+      background: linear-gradient(135deg, var(--t-accent-start), var(--t-accent-end));
+      color: #1a1a1a;
+      font-weight: 700;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 1.2s ease, transform 1.2s ease;
+      pointer-events: none; /* prevent invisible CTA from being clickable */
+      touch-action: manipulation;
+    }
+
+    #teaserScreen .cta.show{
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      #teaserScreen *{ animation: none !important; transition: none !important; }
+    }
+
+    /* =============================
+       TEASER MERGED END
+       ============================= */
   </style>
 </head>
 
 <body>
+  <!-- TEASER MERGED START -->
+  <div id="teaserScreen" class="screen" aria-label="Teaser countdown">
+    <div class="starfield" id="teaserStarfield"></div>
+    <div class="glow"></div>
+    <div class="vignette"></div>
+
+    <div class="container">
+      <div id="countdownBlock" class="fade">
+        <div id="teaserCountdown" class="countdown">00 : 00 : 00 : 00</div>
+        <div class="subtitle">Something beautiful is waiting for you…</div>
+      </div>
+
+      <div id="endBlock" class="hidden fade">
+        <div class="message">It’s time ✨</div>
+        <button id="cta" class="cta" type="button">Open your surprise 💗</button>
+      </div>
+    </div>
+  </div>
+  <!-- TEASER MERGED END -->
+
+  <!-- GIFT MERGED START -->
+  <div id="giftScreen" class="screen" aria-label="Gift content">
   <canvas id="bgCanvas" aria-hidden="true"></canvas>
   <canvas id="burstCanvas" aria-hidden="true"></canvas>
   <div class="blob b1" aria-hidden="true"></div>
@@ -1293,6 +1494,9 @@ Search for:  ======== EDIT HERE ========
     </section>
   </main>
 
+  </div>
+  <!-- GIFT MERGED END -->
+
   <!-- BERRY FEATURE START -->
   <div class="berryOverlay" id="berryOverlay" aria-hidden="true">
     <div class="berrySheet" role="dialog" aria-modal="true" aria-label="Strawberry surprise">
@@ -1313,14 +1517,152 @@ Search for:  ======== EDIT HERE ========
     </div>
   </div>
   <!-- BERRY FEATURE END -->
+  </div>
+  <!-- GIFT MERGED END -->
+
+  <!-- SCREEN SWITCH LOGIC START -->
+  <script>
+    // Teaser countdown -> then reveal gift screen (no navigation)
+
+    // === CONFIG ===
+    const USE_TEST_COUNTDOWN_TEASER = true;   // set true to test quickly
+    const TEST_COUNTDOWN_SECONDS_TEASER = 3;  // used only when test is true
+
+    // Israel target: 11/01/2026 12:00 Israel time (+02:00 in January)
+    const REAL_TARGET_ISRAEL_TEASER = '2026-01-11T12:00:00+02:00';
+
+    const teaserTargetDate = USE_TEST_COUNTDOWN_TEASER
+      ? new Date(Date.now() + TEST_COUNTDOWN_SECONDS_TEASER * 1000)
+      : new Date(REAL_TARGET_ISRAEL_TEASER);
+
+    const teaserCountdownEl = document.getElementById('teaserCountdown');
+    const teaserCountdownBlock = document.getElementById('countdownBlock');
+    const teaserEndBlock = document.getElementById('endBlock');
+    const teaserCTA = document.getElementById('cta');
+    const teaserStarfield = document.getElementById('teaserStarfield');
+
+    const teaserScreen = document.getElementById('teaserScreen');
+    const giftScreen = document.getElementById('giftScreen');
+
+    function createTeaserStarfield(){
+      const starCount = 80;
+      for (let i = 0; i < starCount; i++) {
+        const star = document.createElement('span');
+        star.className = 'star';
+        star.style.top = Math.random() * 100 + '%';
+        star.style.left = Math.random() * 100 + '%';
+        const size = 1 + Math.random() * 1.5;
+        star.style.width = size + 'px';
+        star.style.height = size + 'px';
+        const duration = 2 + Math.random() * 3;
+        const delay = Math.random() * 5;
+        star.style.animation = `teaserTwinkle ${duration}s ease-in-out ${delay}s infinite`;
+        teaserStarfield.appendChild(star);
+      }
+    }
+
+    function formatCountdown(diff){
+      let totalSeconds = Math.floor(diff / 1000);
+      if (totalSeconds < 0) totalSeconds = 0;
+      const days = Math.floor(totalSeconds / 86400);
+      const hours = Math.floor((totalSeconds % 86400) / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+      return [days, hours, minutes, seconds]
+        .map((u) => String(u).padStart(2, '0'))
+        .join(' : ');
+    }
+
+    let teaserTimer = null;
+
+    function showTeaserEndState(){
+      teaserCountdownBlock.classList.add('hidden');
+      teaserStarfield.classList.add('flash');
+
+      setTimeout(() => {
+        teaserEndBlock.classList.remove('hidden');
+        setTimeout(() => teaserCTA.classList.add('show'), 600);
+      }, 600);
+    }
+
+    function openGift(){
+      // Reveal gift screen + fade teaser out
+      if (giftScreen) giftScreen.classList.add('isVisible');
+      if (teaserScreen) teaserScreen.classList.add('fadeOut');
+
+      // After fade, remove teaser from hit-testing entirely
+      setTimeout(() => {
+        if (teaserScreen) teaserScreen.style.display = 'none';
+      }, 800);
+
+      // Scroll gift to top
+      try { giftScreen.scrollTo(0,0); } catch(e) {}
+    }
+
+    function updateTeaserCountdown(){
+      const now = new Date();
+      const diff = teaserTargetDate - now;
+
+      teaserCountdownEl.textContent = formatCountdown(diff);
+
+      // tick effect
+      teaserCountdownEl.style.opacity = '0.5';
+      teaserCountdownEl.style.transform = 'scale(0.97)';
+      setTimeout(() => {
+        teaserCountdownEl.style.opacity = '1';
+        teaserCountdownEl.style.transform = 'scale(1)';
+      }, 200);
+
+      if (diff <= 0){
+        clearInterval(teaserTimer);
+        teaserTimer = null;
+        setTimeout(showTeaserEndState, 700);
+      }
+    }
+
+    // init
+    (function(){
+      createTeaserStarfield();
+
+      // gift starts hidden
+      if (giftScreen) giftScreen.classList.remove('isVisible');
+
+      updateTeaserCountdown();
+      teaserTimer = setInterval(updateTeaserCountdown, 1000);
+
+      const go = (e) => { e.preventDefault(); openGift(); };
+      teaserCTA.addEventListener('touchend', go, { passive:false });
+      teaserCTA.addEventListener('pointerup', go, { passive:false });
+      teaserCTA.addEventListener('click', go, { passive:false });
+
+      // Also allow tapping anywhere on teaser end screen to open
+      teaserEndBlock.addEventListener('click', (e) => { if (!teaserEndBlock.classList.contains('hidden')) openGift(); });
+    })();
+  </script>
+  <!-- SCREEN SWITCH LOGIC END -->
 
   <script>
+    // If opened directly (no teaser), ensure the gift screen is visible.
+    // In the merged version we MUST NOT auto-show the gift while the teaser is present.
+    try{
+      const ts = document.getElementById('teaserScreen');
+      const gs = document.getElementById('giftScreen');
+
+      // Show gift only if teaser doesn't exist OR teaser has been explicitly skipped/removed.
+      const teaserIsGone = !ts || ts.style.display === 'none' || ts.getAttribute('data-skip-teaser') === '1';
+
+      if (gs){
+        if (teaserIsGone) gs.classList.add('isVisible');
+        else gs.classList.remove('isVisible');
+      }
+    }catch(e){}
+
     /************************************************************
      * =============== EDIT HERE (Your Controls) =================
      ************************************************************/
 
     // (1) Title line (small text)
-    const OPTIONAL_TITLE_LINE = "A tiny surprise made with love";
+    const OPTIONAL_TITLE_LINE = " مفاجئة صغيرة ولكن للقلب كبيرة "; // e.g. "A tiny surprise made with love"
 
     // (2) Photo:
     // Option A: Base64 data URL
@@ -1335,32 +1677,29 @@ Search for:  ======== EDIT HERE ========
     const PHOTO_FOCUS_X = 50; // 0..100
     const PHOTO_FOCUS_Y = 80; // 0..100  (try 92, 94, 96 if needed)
 
-    // (4) Arabic message (RTL + line breaks preserved)
-    const MY_ARABIC_MESSAGE = `
-شجن بلال زكي سعادة 💗
+    // (4) Arabic message (hidden)
+    // Put your message here as BASE64 so it won't appear as readable text in the HTML source.
+    // How to generate Base64 quickly (on Mac/Linux Terminal):
+    //   python3 - <<'PY'
+    //   import base64
+    //   msg = r'''PASTE_YOUR_MESSAGE_HERE'''
+    //   print(base64.b64encode(msg.encode('utf-8')).decode('ascii'))
+    //   PY
+    // Then paste the output into MY_ARABIC_MESSAGE_B64.
+    const MY_ARABIC_MESSAGE_B64 = "2LTYrNmGINio2YTYp9mEINiy2YPZiiDYpdi62KjYp9ix2YrYqSDwn4yZCgoK2KjZitmI2YUg2LLZiiDZh9in2YTZitmI2YXYjCDZgtio2YQgMjEg2LPZhtip2IwK2KXYrNiqINmC2YXYsSDYudmE2Ykg2KfZhNiv2YbZitin4oCmIPCfjJkK2YTZgdmR2KrYjCDYr9in2LHYqtiMINmI2LTYp9mB2Kog2YPYq9mK2LEg4pyoCgoK2YjYqNi52K8gMTgg2LPZhtipINmI2YbYtdiMCtij2YbYpyDZhNmC2YrYqiDZh9in2YTZgtmF2LEg2KjYo9it2YTZiSDZh9mE2ZHYqtmHCtmI2YjYtdmEINmE2LnZhtiv2Yog8J+MuAoKCtmI2YLYqtmH2Kcg2YPZhtiqINi02KfZitmBINmC2K/Ziti0INin2YTZgtmF2LEg2K3ZhNmI2IwK2KjYsyDZhdmD2YbYqti0INmF2LPYqtmI2LnYqArYtNmIINix2K0g2YrYudmF2YQg2YHZitmR2YouCtmI2KfZhNmK2YjZhSDYp9mE2YLZhdixINmH2KfYtiDYtdin2LEg2LnZhdix2YcgMjEg2LPZhtip4oCmCtio2LnYr9mHINmF2YjZgtmB2LTYjArZg9io2LEg2KPZg9ir2LHYjArYqNizINio2LnYr9mHINmF2YjYp9i12YQg2LfYsdmK2YLZhwrZiti32K3ZhiDZiNmK2LPYudmJCtmE2YrYrdmC2YIg2KPYrdmE2KfZhSDZg9io2YrYsdipCtmI2YrZgtix2Kgg2KLZhdin2YQg2YPYp9mG2Kog2KjYudmK2K/YqSDinKgKCgrYp9mE2YrZiNmFINin2YTZgtmF2LEg2YfYstmRINmD2YrYp9mG2YrYjArZhdi0INio2LMg2KjYrNmF2KfZhNmH2IwK2KjZhCDYqNit2YTZkdiq2Ycg2YPYp9mF2YTYqSDZiNix2YjYrdmHINin2YTYrdmE2YjYqSDwn4y4CgoK2LTYrNmI2YbYqtmKINij2YUg2K3ZhNmFIPCfkpcK2KjZgtiv2LHYtCDYo9mD2LDYqCDYudmE2YrZg9mK4oCmCtin2YTYr9mG2YrYpyDZgtio2YQg2YPYp9mG2Kog2LrZitix2IwK2YjYp9mE2K/ZhtmK2Kcg2YXYudmDINi12KfYsdiqINi62YrYsSDwn5KeCgoK2KPZhtinINi02K7YtQrYqNi52LHZgdi0INij2LnYqNmR2LEg2LnZhiDZhdi02KfYudix2YrYjArZiNmE2Kcg2KjYrdmD2Yog2LTZiCDYrNmI2KfYqtmKINmE2KPZiiDZhdiu2YTZiNmC2IwK2YjZhNinINi52YXYsdmKINmC2K/Ysdiq4oCmCtio2LMg2KXZhtiq2ZAg2LrZitixIPCfkpcKCgrYqNi52LHZgdi0INij2LTYsditINmD2YQg2LTZitiMCtio2LMg2KfZhNmE2Yog2YXYqtij2YPYryDZhdmG2YcK2YfZiCDYtNi52YjYsdmKINil2YTZgy4K2KXZhtiq2ZAg2KzZitiq2YoK2YjYtdi62KrZiiDYp9mE2K3Zitin2Kkg2LnZhtiv2YoK2KjYtdmK2Log2YPYqNmK2LHYqSDZiNmD2KvZitix2KnigKYKCgrZiNmK2YXZg9mGINiq2LnYtdio2YrZhtmKINi02YjZitiMCtmI2YrZhdmD2YYg2KrYsti52YTZitmG2Yog2YTZhdinINmF2Kcg2KrYsdiv2ZHZitiMCtmI2KPZhtinINio2LLYudmEINmI2YLYqtmH2KfYjArYqNizINij2YjZhCDZhdinINiq2LHYrNi52Yog2KrZiNiv2Yog2LHYs9in2YTYqQrYo9mIINiq2KrYtdmE2YrYjArYo9mG2Kcg2KjZhtiz2Ykg2YPZhCDYtNmKCtmI2KjYsdmD2ZHYsiDZgdmK2YMg2KXZhtiq2ZAg8J+SngoKCtmF2LQg2YTYo9mG2Yog2LbYudmK2YHYjArZiNmE2Kcg2YTYo9mG2Yog2KjZhtiz2Ykg2KjYs9mH2YjZhNip2IwK2KjYsyDZhNij2YbZiiDYqNiv2Yog2KXZitmR2KfZgyDYqtmD2YjZhtmKINmF2KjYs9mI2LfYqdiMCtmI2KjYrdin2YjZhCDZgtivINmF2Kcg2KjZgtiv2LEK2YXYpyDZiti32YTYuSDZhdmG2Yog2YjZhNinINmD2YTZhdipCtiq2LLYudmE2YMuCgrZhNmK2LQg2YXZitmGINij2YbYp9ifCtij2YbYpyDYr9mD2KrZiNix2YMg2YjZgtiqINmF2LHYttmD2IwK2YjYudmE2KfYrNmDINmI2YLYqiDYqti52KjZg9iMCtmI2YHYsdit2KrZgyDZitmI2YUg2LLYudmE2YPYjArZiNiv2YjYp9mDINin2YTZhNmKINio2KrYs9mD2ZHYsdmKINmB2YrZhyDYrNix2YjYrdmDIPCfkpcK2KPZhtinINin2K7Yqtix2KrZg9iMCtmI2KjYr9mKINij2YPZiNmGINmF2LnZgwrYqNmD2YQg2YTYrdi42KnigKYK2YXYsdmR2YfYpyDZgtio2YQg2K3ZhNmI2YfYpy4KCgrYtNis2YbYjArYpdmG2KrZkCDZgtmF2LHZiiDwn4yZCtmI2YTZiCDYqNiv2YMg2LnZitmI2YbZigrYqNi52LfZitmD2Yog2KXZitin2YfZhS4KCgrZiNij2YbYpyDYqNiq2YXZhtmR2YkK2YfYp9mKINin2YTYtdmK2Log2KfZhNmE2Yog2K7ZhNmC2KrZitmH2Kcg2KjYrdmK2KfYqtmKCtiq2LbZhNmR2YfYpyDZhdmI2KzZiNiv2KnYjArZiNio2KrZhdmG2ZHZiSDYo9mK2KfZhdmDINiq2LbZhNmR2YfYpyDZg9mE2YfYpyDYrdioINmI2KLZhdin2YTYjArZiNiq2LTZiNmB2Yog2K3Yp9mE2YMK2LnZhSDYqtiq2YLYr9mR2YXZigrZiNiq2K3ZgtmC2Yog2YPZhCDYrdmE2YUg2K3ZhNmF2KrZitmHIOKcqArZiNij2YPZiNmGINmF2LnZgwrYqNmD2YQg2K7Yt9mI2Kkg2YTZhNit2YTZhS4KCgrZiNil2LDYpyDZgdmKINil2LTZiiDYrNmI2KfYqtmD2IwK2KPZiiDYpdi02YrYjArYqNiv2Yog2KXZitmR2KfZgyDYqtit2YPZitmE2YouCtiu2YTZkdmK2YbZiiDYo9i52LHZgSDYsti52YTZgwrZgtio2YQg2YHYsdit2YMuCgoK2YjYqNin2YTZhtmH2KfZitip4oCmCti02KzZhtiMINil2YbYqtmQINmI2K3Yr9ip4oCmINmF2Kcg2YHZiiDZhdmG2YMg2KfYq9mG2YrZhiDwn4yZCtmD2YQg2LPZhtipINmI2KXZhtiq2ZAg2KjYo9mE2YEg2K7ZitixIPCfjoLinKgK2YjYqNiq2YXZhtin2YTZgyDZhdmGINmC2YTYqNmKCtmD2YQg2KfZhNiu2YrYsSDwn5KX";
+    function decodeB64Utf8(b64){
+      try{
+        // atob -> bytes string, then decode as UTF-8 safely
+        const bin = atob(String(b64 || "").trim());
+        const bytes = new Uint8Array(bin.length);
+        for (let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+        return new TextDecoder('utf-8').decode(bytes);
+      }catch(e){
+        return "";
+      }
+    }
 
-اليوم يوم مش عادي…
-في مثل هاليوم، قبل 20 سنة، إجت عالدنيا بنت قمر ✨
-لفّت الدنيا بهدوئها وضحكتها، وبعد 18 سنة ونص وصلت عندي… وصار للعالم طعم ثاني.
-
-اليوم صرتِ 20 سنة، والي جاي إن شاء الله أحلى وأكبر وأقرب لأحلامك 🌸
-شجن، كل يوم معك بحس إني بالدنيا الصح…
-إنتِ الحياة، وإنتِ الحب، مش بس بيوم ميلادك، بكل أيامك.
-
-بتمنالك أيام مليانة حب وأماني، وحدة وحدة تتحقق قدام عيونك.
-وأنا؟
-أنا بدي أكون معك بكل لحظة…
-تعبانة؟ بكون دكتورك.
-مريضة؟ بكون علاجك .
-لأنه هاض الشعور الحقيقي كل ما أحكي معك وكل ما أفكر فيك.
-
-الحب مش إشي سهل، ومش لحظة عابرة.
-واللي بيني وبينك مش مجرد حب…
-هو مرحلة أعلى، أعمق، وأصدق 💞
-
-كل سنة وإنتِ بخير يا أجمل صدفة بحياتي 🎂✨
-— Obai
-`;
+    const MY_ARABIC_MESSAGE = decodeB64Utf8(MY_ARABIC_MESSAGE_B64);
 
     // (5) Music (optional)
     // base64 data URL OR local filename (same folder)
@@ -1368,8 +1707,9 @@ Search for:  ======== EDIT HERE ========
 
     // (6) Reveal pacing (readable)
     const ENABLE_ENVELOPE = false; // set to false if you want to remove the envelope for now
-    const LINE_DELAY_MIN = 700;   // ms (slower = bigger)
-    const LINE_DELAY_MAX = 1000;   // ms
+    // NOTE: Strawberry popup works regardless of envelope state
+    const LINE_DELAY_MIN = 720;   // ms (slower = bigger)
+    const LINE_DELAY_MAX = 870;   // ms
     const EXTRA_PAUSE_EMPTY_LINE = 1200; // extra pause when the line is empty
 
     /************************************************************
@@ -1377,7 +1717,7 @@ Search for:  ======== EDIT HERE ========
      ************************************************************/
 
     /* Unlock date */
-    const TARGET = { d: 11, m: 1, y: 1980 };
+    const TARGET = { d: 11, m: 1, y: 2005 }; // dd/mm/yyyy (e.g. 25/12/2023)
 
     /* Elements */
     const card = document.getElementById("card");
@@ -1407,6 +1747,69 @@ Search for:  ======== EDIT HERE ========
     const berryOverlay = document.getElementById("berryOverlay");
     const berryClose = document.getElementById("berryClose");
     // BERRY FEATURE END
+
+    /************************************************************
+     * Strawberry (Berry) popup
+     ************************************************************/
+    function openBerry(){
+      if (!berryOverlay) return;
+      berryOverlay.classList.add("show");
+      // allow CSS transition to kick in
+      requestAnimationFrame(() => berryOverlay.classList.add("on"));
+      berryOverlay.setAttribute("aria-hidden", "false");
+    }
+
+    function closeBerry(){
+      if (!berryOverlay) return;
+      berryOverlay.classList.remove("on");
+      setTimeout(() => {
+        berryOverlay.classList.remove("show");
+        berryOverlay.setAttribute("aria-hidden", "true");
+      }, 220);
+    }
+
+    if (berryBtn){
+      const openAny = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openBerry();
+      };
+      berryBtn.addEventListener("pointerup", openAny);
+      berryBtn.addEventListener("click", openAny);
+    }
+
+    if (berryClose){
+      const closeAnyBtn = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        closeBerry();
+      };
+      berryClose.addEventListener("pointerup", closeAnyBtn);
+      berryClose.addEventListener("click", closeAnyBtn);
+    }
+
+    if (berryOverlay){
+      const closeAny = (e) => {
+        // if user taps the X button, let the button handler do it
+        if (e && (e.target === berryClose)) return;
+        closeBerry();
+      };
+
+      berryOverlay.addEventListener("pointerup", closeAny);
+      berryOverlay.addEventListener("click", closeAny);
+
+      const berrySheet = berryOverlay.querySelector(".berrySheet");
+      if (berrySheet){
+        berrySheet.addEventListener("pointerup", closeAny);
+        berrySheet.addEventListener("click", closeAny);
+      }
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && berryOverlay && berryOverlay.classList.contains("show")){
+        closeBerry();
+      }
+    });
 
     const bgCanvas = document.getElementById("bgCanvas");
     const burstCanvas = document.getElementById("burstCanvas");
@@ -1438,6 +1841,7 @@ Search for:  ======== EDIT HERE ========
       if (photoBox){
         photoBox.style.backgroundImage = `url("${src.replace(/\"/g,'\\\"')}")`;
         photoBox.dataset.hasPhoto = "1";
+        setTimeout(triggerPhotoSpark, 80);
       }
       photoPlaceholder.style.display = "none";
       requestAnimationFrame(() => applyPhotoFocus());
@@ -1470,6 +1874,20 @@ Search for:  ======== EDIT HERE ========
       el.classList.add("shake");
       setTimeout(() => el.classList.remove("shake"), 450);
     }
+    function triggerPhotoSpark(){
+    if (!photoBox) return;
+    if (photoBox.dataset && photoBox.dataset.hasPhoto !== "1") return;
+
+    // retrigger sparkle even if it already played while hidden
+    photoBox.classList.remove("sparkNow");
+    void photoBox.offsetWidth; // force reflow to restart animation
+    photoBox.classList.add("sparkNow");
+
+    // clean up so future triggers work reliably
+    setTimeout(() => {
+      try{ photoBox.classList.remove("sparkNow"); }catch(e){}
+    }, 1200);
+   }
 
     function revealArabicLineByLine(text){
       const lines = (text || "").split(/\n/);
@@ -1589,6 +2007,7 @@ Search for:  ======== EDIT HERE ========
       setTimeout(() => {
         unlockBox.style.display = "none";
         reveal.classList.add("show");
+        triggerPhotoSpark();
 
         envelopeOpened = false;
         if (revealContent) revealContent.classList.remove("show");
@@ -1599,9 +2018,10 @@ Search for:  ======== EDIT HERE ========
         if (!ENABLE_ENVELOPE){
           if (envelopeWrap) envelopeWrap.style.display = "none";
 
-          setTimeout(() => {
-            if (revealContent) revealContent.classList.add("show");
-          }, 260);
+        setTimeout(() => {
+          if (revealContent) revealContent.classList.add("show");
+          triggerPhotoSpark();
+        }, 260);
 
           setTimeout(() => {
             revealArabicLineByLine(FULL_ARABIC);
@@ -1638,6 +2058,9 @@ Search for:  ======== EDIT HERE ========
     });
 
     setHint("💡 Enter my soulmate birthday date to unlock");
+    if (!MY_ARABIC_MESSAGE_B64 || MY_ARABIC_MESSAGE_B64 === "PASTE_BASE64_HERE"){
+      console.warn("MY_ARABIC_MESSAGE_B64 is not set. Paste the Base64 of your message.");
+    }
 
     /* Music button */
     musicBtn.addEventListener("click", async () => {
@@ -2520,7 +2943,7 @@ requestAnimationFrame(bgLoop);
 
         if (tapTimes.length >= 5){
           secretShown = true;
-          const secret = "سر صغير… إنتِ أجمل شي صار بحياتي 💗";
+          const secret = "💖 You found the secret heart! 💖";
           showToast(secret);
           setHint(secret, true);
           burstSmallAtElement(heartEl);
